@@ -5,19 +5,16 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Manutenzioni Auto</title>
 
-    <!-- Manifest -->
     <link rel="manifest" href="manifest.json">
-
-    <!-- Icona -->
     <link rel="icon" href="icon-512.png" type="image/png">
-
-    <!-- Stile -->
     <link rel="stylesheet" href="style.css">
 </head>
 
 <body>
 
     <h1>Manutenzioni Auto</h1>
+
+    <button id="installBtn" style="display:none;" class="install-btn">Installa App</button>
 
     <div class="container">
         <label>Tipo intervento</label>
@@ -40,7 +37,7 @@
 
     <script src="app.js"></script>
 
-    <!-- REGISTRAZIONE SERVICE WORKER -->
+    <!-- SERVICE WORKER -->
     <script>
     if ("serviceWorker" in navigator) {
         navigator.serviceWorker.register("pwa-work.js")
@@ -49,5 +46,20 @@
     }
     </script>
 
-</body>
-</html>
+    <!-- INSTALL BUTTON -->
+    <script>
+    let deferredPrompt;
+    const installBtn = document.getElementById("installBtn");
+
+    window.addEventListener("beforeinstallprompt", (e) => {
+        e.preventDefault();
+        deferredPrompt = e;
+        installBtn.style.display = "block";
+    });
+
+    installBtn.addEventListener("click", async () => {
+        if (!deferredPrompt) return;
+        deferredPrompt.prompt();
+        const { outcome } = await deferredPrompt.userChoice;
+        deferredPrompt = null;
+        installBtn.style.display = "none
