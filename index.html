@@ -1,130 +1,53 @@
 <!DOCTYPE html>
 <html lang="it">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Manutenzioni Auto</title>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Manutenzioni Auto</title>
 
-  <link rel="manifest" href="manifest.json">
-  <link rel="icon" href="icon-512.png">
-  <link rel="stylesheet" href="style.css">
+    <!-- Manifest -->
+    <link rel="manifest" href="manifest.json">
 
-  <!-- REGISTRAZIONE SERVICE WORKER + NOTIFICA AGGIORNAMENTO -->
-  <script>
-    if ("serviceWorker" in navigator) {
-      navigator.serviceWorker.register("pwa-work.js").then(reg => {
-        reg.addEventListener("updatefound", () => {
-          const newWorker = reg.installing;
-          newWorker.addEventListener("statechange", () => {
-            if (newWorker.state === "installed" && navigator.serviceWorker.controller) {
-              mostraNotificaAggiornamento(newWorker);
-            }
-          });
-        });
-      });
-    }
+    <!-- Icona -->
+    <link rel="icon" href="icon-512.png" type="image/png">
 
-    function mostraNotificaAggiornamento(worker) {
-      const banner = document.createElement("div");
-      banner.style.position = "fixed";
-      banner.style.bottom = "20px";
-      banner.style.left = "50%";
-      banner.style.transform = "translateX(-50%)";
-      banner.style.background = "#6366f1";
-      banner.style.color = "white";
-      banner.style.padding = "12px 20px";
-      banner.style.borderRadius = "12px";
-      banner.style.boxShadow = "0 4px 20px rgba(0,0,0,0.4)";
-      banner.style.fontSize = "0.9rem";
-      banner.style.zIndex = "9999";
-      banner.style.display = "flex";
-      banner.style.gap = "12px";
-      banner.style.alignItems = "center";
-
-      banner.innerHTML = `
-        <span>Nuova versione disponibile</span>
-        <button id="aggiornaApp" style="
-          background:white;
-          color:#6366f1;
-          border:none;
-          padding:6px 12px;
-          border-radius:8px;
-          cursor:pointer;
-          font-weight:bold;
-        ">Aggiorna</button>
-      `;
-
-      document.body.appendChild(banner);
-
-      document.getElementById("aggiornaApp").onclick = () => {
-        worker.postMessage("skipWaiting");
-        window.location.reload();
-      };
-    }
-  </script>
+    <!-- Stile -->
+    <link rel="stylesheet" href="style.css">
 </head>
 
 <body>
-  <header>
+
     <h1>Manutenzioni Auto</h1>
-    <p>Registra interventi, costi e chilometraggio — sincronizzato su Drive.</p>
-  </header>
 
-  <main class="layout">
-    <!-- Colonna sinistra -->
-    <section class="card left">
-      <h2>Nuovo intervento</h2>
+    <div class="container">
+        <label>Tipo intervento</label>
+        <input id="tipo" type="text" placeholder="Es. Tagliando">
 
-      <label>Tipo intervento</label>
-      <input id="tipo" type="text" placeholder="Tagliando" />
+        <label>Data</label>
+        <input id="data" type="date">
 
-      <label>Data intervento</label>
-      <input id="data" type="date" />
+        <label>Km</label>
+        <input id="km" type="number" placeholder="Es. 120000">
 
-      <label>Km</label>
-      <input id="km" type="number" placeholder="Es. 12345" />
+        <label>Note</label>
+        <textarea id="note" placeholder="Aggiungi note..."></textarea>
 
-      <label>Costo ricambi (€)</label>
-      <input id="ricambi" type="number" step="0.01" placeholder="0.00" />
+        <button onclick="aggiungi()">Aggiungi</button>
+    </div>
 
-      <label>Costo manodopera (€)</label>
-      <input id="manodopera" type="number" step="0.01" placeholder="0.00" />
+    <h2>Storico interventi</h2>
+    <ul id="lista"></ul>
 
-      <label>Titolo breve</label>
-      <input id="titolo" type="text" placeholder="Es. Sostituzione pastiglie anteriori" />
+    <script src="app.js"></script>
 
-      <label>Note dettagliate</label>
-      <textarea id="note" placeholder="Annotazioni, riferimento fattura, officina..."></textarea>
+    <!-- REGISTRAZIONE SERVICE WORKER -->
+    <script>
+    if ("serviceWorker" in navigator) {
+        navigator.serviceWorker.register("pwa-work.js")
+        .then(() => console.log("SW registrato"))
+        .catch(err => console.log("Errore SW:", err));
+    }
+    </script>
 
-      <div class="buttons-row">
-        <button onclick="salva()">Salva intervento</button>
-        <button class="secondary" onclick="nuovo()">Nuovo</button>
-        <button class="secondary" onclick="svuotaTutto()">Svuota tutto</button>
-      </div>
-
-      <p class="status">
-        <span id="stato">Pronto</span> ·
-        Ultimo salvataggio: <span id="ultimo-salvataggio">—</span>
-      </p>
-    </section>
-
-    <!-- Colonna destra -->
-    <section class="card right">
-      <div class="storico-header">
-        <h2>Storico interventi</h2>
-        <span id="conteggio">0 interventi</span>
-      </div>
-
-      <div class="totale-box">
-        <div>Totale speso</div>
-        <div class="totale-importo">€<span id="totale-speso">0.00</span></div>
-        <small>Aggiornato automaticamente</small>
-      </div>
-
-      <ul id="lista" class="lista-interventi"></ul>
-    </section>
-  </main>
-
-  <script src="app.js"></script>
 </body>
 </html>
