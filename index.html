@@ -14,9 +14,9 @@
 
     <h1>Manutenzioni Auto</h1>
 
-    <button id="installBtn" style="display:none;" class="install-btn">Installa App</button>
+    <button id="installBtn" class="install-btn" style="display:none;">Installa App</button>
 
-    <div class="container">
+    <div class="card">
         <label>Tipo intervento</label>
         <input id="tipo" type="text" placeholder="Es. Tagliando">
 
@@ -29,20 +29,18 @@
         <label>Note</label>
         <textarea id="note" placeholder="Aggiungi note..."></textarea>
 
-        <button onclick="aggiungi()">Aggiungi</button>
+        <button class="btn-primary" onclick="aggiungi()">Aggiungi</button>
     </div>
 
     <h2>Storico interventi</h2>
-    <ul id="lista"></ul>
+    <ul id="lista" class="lista"></ul>
 
     <script src="app.js"></script>
 
     <!-- SERVICE WORKER -->
     <script>
     if ("serviceWorker" in navigator) {
-        navigator.serviceWorker.register("pwa-work.js")
-        .then(() => console.log("SW registrato"))
-        .catch(err => console.log("Errore SW:", err));
+        navigator.serviceWorker.register("pwa-work.js");
     }
     </script>
 
@@ -60,6 +58,11 @@
     installBtn.addEventListener("click", async () => {
         if (!deferredPrompt) return;
         deferredPrompt.prompt();
-        const { outcome } = await deferredPrompt.userChoice;
+        await deferredPrompt.userChoice;
         deferredPrompt = null;
-        installBtn.style.display = "none
+        installBtn.style.display = "none";
+    });
+    </script>
+
+</body>
+</html>
