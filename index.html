@@ -20,6 +20,58 @@
   </style>
 </head>
 <body>
+
+  <!-- DEBUG GOOGLE -->
+<div id="gapi-debug" style="
+  position:fixed; bottom:10px; left:10px; right:10px;
+  background:#fff; border:1px solid #ccc; padding:10px;
+  font-family:monospace; font-size:13px; max-height:40vh; overflow:auto;
+  z-index:99999; border-radius:8px;">
+  <b>DEBUG GOOGLE:</b><br>
+</div>
+
+<script>
+function dbg(msg){
+  document.getElementById('gapi-debug').innerHTML += msg + "<br>";
+}
+
+dbg("Caricamento debug...");
+
+(function(){
+  dbg("gapi presente? " + (!!window.gapi));
+
+  // Test caricamento api.js
+  if(!window.gapi){
+    dbg("gapi NON presente, provo a caricare api.js...");
+    const s = document.createElement('script');
+    s.src = "https://apis.google.com/js/api.js";
+    s.onload = () => dbg("api.js caricato, gapi ora presente? " + (!!window.gapi));
+    s.onerror = () => dbg("ERRORE: impossibile caricare api.js");
+    document.head.appendChild(s);
+  }
+
+  // Test init
+  window.testGoogleInit = async function(){
+    dbg("Eseguo testGoogleInit...");
+    try {
+      await gapi.load("client:auth2", async () => {
+        try {
+          await gapi.client.init({
+            clientId: GAPI_CLIENT_ID,
+            scope: GAPI_SCOPES
+          });
+          dbg("INIT OK — Google API inizializzato");
+        } catch(e){
+          dbg("ERRORE init: " + JSON.stringify(e));
+        }
+      });
+    } catch(e){
+      dbg("ERRORE gapi.load: " + e.message);
+    }
+  };
+})();
+</script>
+  
   <div class="card" role="main" aria-labelledby="title">
     <h2 id="title">Vault</h2>
     <div class="muted">Sincronizzazione Google Drive — PIN per sblocco</div>
