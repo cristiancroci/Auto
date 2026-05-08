@@ -2,133 +2,46 @@
 <html lang="it">
 <head>
   <meta charset="UTF-8" />
-  <title>La Mia App PWA</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>La Mia App</title>
 
-  <!-- Manifest -->
   <link rel="manifest" href="manifest.webmanifest">
+  <meta name="theme-color" content="#4b6cff">
 
-  <!-- Colore barra indirizzi mobile -->
-  <meta name="theme-color" content="#121212">
-
-  <!-- Stili base -->
   <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
-      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-      background: #121212;
-      color: #f5f5f5;
+      margin: 0;
+      font-family: "Inter", system-ui, sans-serif;
+      background: linear-gradient(135deg, #4b6cff, #8f5cff);
       min-height: 100vh;
+      padding: 20px;
+      color: #fff;
       display: flex;
       flex-direction: column;
+      gap: 20px;
     }
-    header {
-      padding: 1rem;
-      background: #1f1f1f;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
+
+    h1 {
+      font-size: 1.8rem;
+      font-weight: 700;
+      text-shadow: 0 2px 6px rgba(0,0,0,0.25);
     }
-    header h1 { font-size: 1.1rem; }
-    main {
-      flex: 1;
-      padding: 1rem;
-    }
+
     .card {
-      background: #1f1f1f;
-      border-radius: 0.75rem;
-      padding: 1rem;
-      margin-bottom: 1rem;
+      backdrop-filter: blur(14px);
+      background: rgba(255,255,255,0.15);
+      border-radius: 20px;
+      padding: 20px;
+      box-shadow: 0 8px 25px rgba(0,0,0,0.25);
+      border: 1px solid rgba(255,255,255,0.25);
     }
+
     label {
+      font-size: 0.9rem;
+      opacity: 0.9;
+      margin-bottom: 5px;
       display: block;
-      font-size: 0.85rem;
-      margin-bottom: 0.25rem;
-      opacity: 0.8;
     }
+
     input, textarea {
       width: 100%;
-      padding: 0.6rem 0.75rem;
-      border-radius: 0.5rem;
-      border: 1px solid #333;
-      background: #181818;
-      color: #f5f5f5;
-      margin-bottom: 0.75rem;
-      font-size: 0.9rem;
-    }
-    button {
-      border: none;
-      border-radius: 999px;
-      padding: 0.6rem 1.2rem;
-      font-size: 0.9rem;
-      cursor: pointer;
-      background: #00b894;
-      color: #fff;
-    }
-    button.secondary {
-      background: #2d3436;
-      margin-left: 0.5rem;
-    }
-    .items {
-      margin-top: 1rem;
-    }
-    .item {
-      padding: 0.75rem;
-      border-radius: 0.5rem;
-      background: #181818;
-      margin-bottom: 0.5rem;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      font-size: 0.9rem;
-    }
-    .item span.key {
-      font-weight: 600;
-    }
-    .item button {
-      padding: 0.3rem 0.7rem;
-      font-size: 0.75rem;
-    }
-    footer {
-      padding: 0.75rem 1rem;
-      font-size: 0.75rem;
-      text-align: center;
-      background: #1f1f1f;
-      opacity: 0.8;
-    }
-  </style>
-</head>
-<body>
-  <header>
-    <h1>La Mia App PWA</h1>
-    <button id="installBtn" style="display:none;">Installa</button>
-  </header>
-
-  <main>
-    <section class="card">
-      <h2 style="margin-bottom:0.75rem;font-size:1rem;">Aggiungi elemento</h2>
-      <label for="keyInput">Nome</label>
-      <input id="keyInput" type="text" placeholder="Es. Voce 1" />
-
-      <label for="valueInput">Valore</label>
-      <textarea id="valueInput" rows="3" placeholder="Contenuto..."></textarea>
-
-      <div style="margin-top:0.5rem;">
-        <button id="saveBtn">Salva</button>
-        <button id="clearBtn" class="secondary">Svuota tutto</button>
-      </div>
-    </section>
-
-    <section class="card">
-      <h2 style="margin-bottom:0.75rem;font-size:1rem;">Elementi salvati</h2>
-      <div id="itemsContainer" class="items"></div>
-    </section>
-  </main>
-
-  <footer>
-    PWA base — offline, installabile, storage locale. Da qui la adattiamo alla tua app reale.
-  </footer>
-
-  <script src="app.js"></script>
-</body>
-</html>
