@@ -1,146 +1,193 @@
-// drive-sync.js
-// Requirements: <script src="https://apis.google.com/js/api.js"></script> loaded before this file
+// drive-sync.js (GSI + Drive REST, appDataFolder)
+// Requisiti: includere <script src="https://accounts.google.com/gsi/client"></script> prima di questo file
+// Sostituisci GAPI_CLIENT_ID con il tuo client id
 
 const GAPI_CLIENT_ID = '776375898567-ee2jfmfd9cte7dp6fj02k5ubpvag4e29.apps.googleusercontent.com';
 const GAPI_SCOPES = 'https://www.googleapis.com/auth/drive.appdata';
 
-async function gdriveInit(timeoutMs = 8000) {
-  return new Promise((resolve, reject) => {
-    let done = false;
-    const timer = setTimeout(()=>{ if(!done){ done=true; reject(new Error('gapi load timeout')); } }, timeoutMs);
-    try {
-      gapi.load('client:auth2', async () => {
-        try {
-          await gapi.client.init({ clientId: GAPI_CLIENT_ID, scope: GAPI_SCOPES });
-          if (!done) { done = true; clearTimeout(timer); resolve(); }
-        } catch (e) { if (!done) { done = true; clearTimeout(timer); reject(e); } }
-      });
-    } catch (e) { if (!done) { done = true; clearTimeout(timer); reject(e); } }
+// Token client (GSI)
+let tokenClient = null;
+let currentAccessToken = null;
+let tokenExpiry = 0;
+
+function initTokenClient() {
+  if (tokenClient) return;
+  if (!window.google || !google.accounts || !google.accounts.oauth2) {
+    console.warn('GSI client non disponibile (accounts.google.com/gsi/client non caricato)');
+    return;
+  }
+  tokenClient = google.accounts.oauth2.initTokenClient({
+    client_id: GAPI_CLIENT_ID,
+    scope: GAPI_SCOPES,
+    callback: (resp) => {
+      // callback viene chiamata quando otteniamo un token
+      if (resp && resp.access_token) {
+        currentAccessToken = resp.access_token;
+        // token lifetime: non sempre fornito; calcoliamo una scadenza prudente
+        tokenExpiry = Date.now() + (resp.expires_in ? resp.expires_in * 1000 : 55 * 60 * 1000);
+        console.log('Token ottenuto, expires_in:', resp.expires_in);
+      } else {
+        console.warn('Token client callback senza access_token', resp);
+      }
+    }
   });
 }
 
-async function ensureSignedIn() {
-  const auth = gapi.auth2.getAuthInstance();
-  if (!auth) throw new Error('Auth instance missing');
-  if (!auth.isSignedIn.get()) await auth.signIn();
-  return auth.currentUser.get();
+// Richiedi token interattivo (apre popup di consenso)
+async function requestAccessTokenInteractive() {
+  initTokenClient();
+  return new Promise((resolve, reject) => {
+    if (!tokenClient) return reject(new Error('Token client non inizializzato'));
+    tokenClient.requestAccessToken({ prompt: 'consent' });
+    // la callback di tokenClient imposta currentAccessToken; polliamo brevemente
+    const start = Date.now();
+    const t = setInterval(() => {
+      if (currentAccessToken) { clearInterval(t); return resolve(currentAccessToken); }
+      if (Date.now() - start > 20000) { clearInterval(t); return reject(new Error('Timeout token')); }
+    }, 200);
+  });
+}
+
+// Ottieni token silenzioso (se già autorizzato)
+async function requestAccessTokenSilent() {
+  initTokenClient();
+  return new Promise((resolve, reject) => {
+    if (!tokenClient) return reject(new Error('Token client non inizializzato'));
+    tokenClient.requestAccessToken({ prompt: '' }); // silent
+    const start = Date.now();
+    const t = setInterval(() => {
+      if (currentAccessToken) { clearInterval(t); return resolve(currentAccessToken); }
+      if (Date.now() - start > 15000) { clearInterval(t); return reject(new Error('Timeout token silent')); }
+    }, 200);
+  });
+}
+
+async function ensureSignedInInteractive() {
+  // se token valido e non scaduto, riusalo
+  if (currentAccessToken && Date.now() < tokenExpiry - 30000) return currentAccessToken;
+  // altrimenti richiedi interattivamente
+  return await requestAccessTokenInteractive();
 }
 
 async function getAccessToken() {
-  const auth = gapi.auth2.getAuthInstance();
-  if (!auth) throw new Error('Auth instance missing');
-  if (!auth.isSignedIn.get()) await auth.signIn();
-  const tokenObj = auth.currentUser.get().getAuthResponse(true);
-  return tokenObj.access_token;
+  if (currentAccessToken && Date.now() < tokenExpiry - 30000) return currentAccessToken;
+  // prova silent prima, poi interactive
+  try {
+    return await requestAccessTokenSilent();
+  } catch (e) {
+    return await requestAccessTokenInteractive();
+  }
 }
 
-// find file in appDataFolder by name
-async function findFileByName(name) {
-  const res = await gapi.client.drive.files.list({
-    spaces: 'appDataFolder',
-    q: `name='${name}'`,
-    fields: 'files(id,name,modifiedTime,size)'
-  });
-  return res.result.files && res.result.files[0];
-}
-
-// Save key (base64) to Drive as vault_key.json
-async function saveKeyToDrive(keyB64) {
-  await ensureSignedIn();
-  const existing = await findFileByName('vault_key.json');
-  const metadata = { name: 'vault_key.json', parents: ['appDataFolder'] };
-  const blob = new Blob([keyB64], { type: 'application/json' });
-  const form = new FormData();
-  form.append('metadata', new Blob([JSON.stringify(metadata)], { type: 'application/json' }));
-  form.append('file', blob, 'vault_key.json');
-
+// Helper: call Drive REST
+async function driveFetch(path, opts = {}) {
   const token = await getAccessToken();
-  const url = existing
-    ? `https://www.googleapis.com/upload/drive/v3/files/${existing.id}?uploadType=multipart`
-    : 'https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart';
-
-  const res = await fetch(url, { method: existing ? 'PATCH' : 'POST', headers: { Authorization: 'Bearer ' + token }, body: form });
-  if (!res.ok) throw new Error('Key upload failed: ' + res.status);
-  return await res.json();
-}
-
-async function loadKeyFromDrive() {
-  await ensureSignedIn();
-  const file = await findFileByName('vault_key.json');
-  if (!file) return null;
-  const token = await getAccessToken();
-  const res = await fetch(`https://www.googleapis.com/drive/v3/files/${file.id}?alt=media`, { headers: { Authorization: 'Bearer ' + token } });
-  if (!res.ok) throw new Error('Key download failed: ' + res.status);
-  const text = await res.text();
-  return text;
-}
-
-// Save vault (encrypted base64) to Drive as vault_blob.json
-async function saveVaultToDrive(encryptedB64) {
-  await ensureSignedIn();
-  const existing = await findFileByName('vault_blob.json');
-  const metadata = { name: 'vault_blob.json', parents: ['appDataFolder'] };
-  const blob = new Blob([encryptedB64], { type: 'application/octet-stream' });
-  const form = new FormData();
-  form.append('metadata', new Blob([JSON.stringify(metadata)], { type: 'application/json' }));
-  form.append('file', blob, 'vault_blob.json');
-
-  const token = await getAccessToken();
-  const url = existing
-    ? `https://www.googleapis.com/upload/drive/v3/files/${existing.id}?uploadType=multipart`
-    : 'https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart';
-
-  const res = await fetch(url, { method: existing ? 'PATCH' : 'POST', headers: { Authorization: 'Bearer ' + token }, body: form });
+  const headers = Object.assign({}, opts.headers || {}, { Authorization: 'Bearer ' + token });
+  const res = await fetch('https://www.googleapis.com/drive/v3' + path, Object.assign({}, opts, { headers }));
   if (!res.ok) {
-    const txt = await res.text();
-    throw new Error('Vault upload failed: ' + res.status + ' ' + txt);
+    const txt = await res.text().catch(()=>null);
+    const err = new Error('Drive API error: ' + res.status + ' ' + txt);
+    err.status = res.status;
+    err.body = txt;
+    throw err;
+  }
+  return res;
+}
+
+// find file by name in appDataFolder
+async function findFileByName(name) {
+  const q = `name='${name.replace(/'/g,"\\'")}'`;
+  const res = await driveFetch(`/files?spaces=appDataFolder&q=${encodeURIComponent(q)}&fields=files(id,name,modifiedTime,size)`);
+  const json = await res.json();
+  return json.files && json.files[0];
+}
+
+// upload (create or update) file to appDataFolder using multipart
+async function uploadFileToAppData(name, content, mime='application/octet-stream') {
+  const existing = await findFileByName(name);
+  const metadata = { name, parents: ['appDataFolder'] };
+  const boundary = '-------vault' + Math.random().toString(36).slice(2);
+  const bodyParts = [];
+  bodyParts.push(`--${boundary}\r\nContent-Type: application/json; charset=UTF-8\r\n\r\n${JSON.stringify(metadata)}\r\n`);
+  bodyParts.push(`--${boundary}\r\nContent-Type: ${mime}\r\n\r\n`);
+  bodyParts.push(content + '\r\n');
+  bodyParts.push(`--${boundary}--`);
+  const body = new Blob(bodyParts, { type: 'multipart/related; boundary=' + boundary });
+
+  const token = await getAccessToken();
+  const url = existing ? `https://www.googleapis.com/upload/drive/v3/files/${existing.id}?uploadType=multipart` : 'https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart';
+  const res = await fetch(url, {
+    method: existing ? 'PATCH' : 'POST',
+    headers: { Authorization: 'Bearer ' + token },
+    body
+  });
+  if (!res.ok) {
+    const txt = await res.text().catch(()=>null);
+    throw new Error('Upload failed: ' + res.status + ' ' + txt);
   }
   return await res.json();
 }
 
-async function loadVaultFromDrive() {
-  await ensureSignedIn();
-  const file = await findFileByName('vault_blob.json');
+// download file content by name
+async function downloadFileFromAppData(name) {
+  const file = await findFileByName(name);
   if (!file) return null;
-  const token = await getAccessToken();
-  const res = await fetch(`https://www.googleapis.com/drive/v3/files/${file.id}?alt=media`, { headers: { Authorization: 'Bearer ' + token } });
-  if (!res.ok) throw new Error('Vault download failed: ' + res.status);
-  const text = await res.text();
-  return text;
+  const res = await driveFetch(`/files/${file.id}?alt=media`);
+  return await res.text();
 }
 
 // Public helpers used by index.html
-async function createAndSaveKeyIfMissing() {
-  // check Drive for key
-  const existing = await loadKeyFromDrive();
-  if (existing) return existing;
-  const keyB64 = await generateAesKeyB64(); // from crypto.js
-  await saveKeyToDrive(keyB64);
-  return keyB64;
-}
-
-// Expose functions globally
-window.gdriveInit = gdriveInit;
-window.saveKeyToDrive = saveKeyToDrive;
-window.loadKeyFromDrive = loadKeyFromDrive;
-window.saveVaultToDrive = saveVaultToDrive;
-window.loadVaultFromDrive = loadVaultFromDrive;
-window.createAndSaveKeyIfMissing = createAndSaveKeyIfMissing;
-
-// ensureKeyLoaded used by index.html
-window.loadKeyFromDrive = loadKeyFromDrive;
-window.ensureKeyLoaded = async function(){
-  let k = localStorage.getItem('vault_key_b64');
-  if (k) return k;
-  await gdriveInit();
-  const remote = await loadKeyFromDrive();
-  if (remote) {
-    localStorage.setItem('vault_key_b64', remote);
-    return remote;
+window.gdriveInit = async function(){
+  // inizializza token client e prova a ottenere token silent (non forzare popup)
+  initTokenClient();
+  try {
+    await requestAccessTokenSilent();
+    console.log('gdriveInit: token ottenuto silent');
+    return;
+  } catch (e) {
+    console.log('gdriveInit: nessun token silent, attendere azione utente per login');
+    return;
   }
-  // create new key and save
-  const newKey = await generateAesKeyB64();
-  await saveKeyToDrive(newKey);
-  localStorage.setItem('vault_key_b64', newKey);
-  return newKey;
+};
+
+window.ensureKeyLoaded = async function(){
+  // prova a leggere vault_key.json da Drive; se non esiste, creane una e salvala
+  try {
+    const key = localStorage.getItem('vault_key_b64');
+    if (key) return key;
+    // richiedi token interattivo (se necessario)
+    await ensureSignedInInteractive();
+    const remote = await downloadFileFromAppData('vault_key.json');
+    if (remote) {
+      localStorage.setItem('vault_key_b64', remote);
+      return remote;
+    }
+    // crea nuova chiave
+    const newKey = await generateAesKeyB64(); // funzione da crypto.js
+    await uploadFileToAppData('vault_key.json', newKey, 'application/json');
+    localStorage.setItem('vault_key_b64', newKey);
+    return newKey;
+  } catch (e) {
+    throw e;
+  }
+};
+
+window.saveKeyToDrive = async function(keyB64){
+  await ensureSignedInInteractive();
+  return await uploadFileToAppData('vault_key.json', keyB64, 'application/json');
+};
+
+window.loadKeyFromDrive = async function(){
+  await ensureSignedInInteractive();
+  return await downloadFileFromAppData('vault_key.json');
+};
+
+window.saveVaultToDrive = async function(encryptedB64){
+  await ensureSignedInInteractive();
+  return await uploadFileToAppData('vault_blob.json', encryptedB64, 'application/octet-stream');
+};
+
+window.loadVaultFromDrive = async function(){
+  await ensureSignedInInteractive();
+  return await downloadFileFromAppData('vault_blob.json');
 };
