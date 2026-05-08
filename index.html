@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Vault</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+  <!-- NOTIFICHE -->
+  <div id="notifyBox"></div>
+
+  <!-- MASTER PASSWORD -->
+  <div id="masterOverlay" class="overlay">
+    <div class="overlay-card">
+      <h2>🔐 Sblocca il Vault</h2>
+      <input id="masterInput" type="password" placeholder="Master password">
+      <button class="btn-save" id="unlockBtn">🔓 Sblocca</button>
+    </div>
+  </div>
+
+  <!-- POPUP VISUALIZZA -->
+  <div id="viewOverlay" class="view-overlay">
+    <div class="view-card">
+      <h2 id="viewTitle"></h2>
+
+      <p><b>Username:</b><br><span id="viewUser"></span></p>
+      <p><b>Password:</b><br><span id="viewPass"></span></p>
+      <p><b>PIN:</b><br><span id="viewPin"></span></p>
+      <p><b>Note:</b><br><span id="viewNotes"></span></p>
+
+      <button class="btn-cancel" id="viewClose">❌ Chiudi</button>
+    </div>
+  </div>
+
+  <div class="page">
+    <h1>🔐 Vault</h1>
+
+    <div class="layout">
+
+      <!-- SINISTRA -->
+      <div class="card">
+        <label>Titolo</label>
+        <input id="titleInput" type="text">
+
+        <label>Username</label>
+        <input id="usernameInput" type="text">
+
+        <label>Password</label>
+        <input id="passwordInput" type="password">
+
+        <label>PIN</label>
+        <input id="pinInput" type="password" inputmode="numeric">
+
+        <label>Note</label>
+        <textarea id="notesInput" rows="2"></textarea>
+
+        <button class="btn-save" id="saveBtn">💾 Salva</button>
+      </div>
+
+      <!-- DESTRA -->
+      <div class="card">
+        <h3>Voci salvate</h3>
+        <div id="itemsContainer"></div>
+      </div>
+
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
