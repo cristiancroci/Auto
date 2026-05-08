@@ -6,15 +6,15 @@
   <title>La Mia App</title>
 
   <link rel="manifest" href="manifest.webmanifest">
-  <meta name="theme-color" content="#ffffff">
+  <meta name="theme-color" content="#000000">
 
   <style>
     body {
       margin: 0;
       font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", sans-serif;
-      background: #f5f5f7;
+      background: #000000;
       padding: 20px;
-      color: #1c1c1e;
+      color: #f2f2f7;
       display: flex;
       flex-direction: column;
       gap: 20px;
@@ -24,13 +24,15 @@
       font-size: 2rem;
       font-weight: 700;
       margin-bottom: 10px;
+      color: #ffffff;
     }
 
     .card {
-      background: #ffffff;
+      background: #1c1c1e;
       border-radius: 18px;
       padding: 20px;
-      box-shadow: 0 4px 18px rgba(0,0,0,0.08);
+      box-shadow: 0 6px 20px rgba(0,0,0,0.45);
+      border: 1px solid rgba(255,255,255,0.05);
     }
 
     label {
@@ -38,17 +40,18 @@
       font-weight: 600;
       margin-bottom: 6px;
       display: block;
+      color: #d1d1d6;
     }
 
     input, textarea {
       width: 100%;
       padding: 12px 14px;
       border-radius: 12px;
-      border: 1px solid #d2d2d7;
+      border: 1px solid #3a3a3c;
       margin-bottom: 14px;
       font-size: 1rem;
-      background: #fafafa;
-      color: #1c1c1e;
+      background: #2c2c2e;
+      color: #ffffff;
     }
 
     button {
@@ -58,31 +61,31 @@
       font-size: 1rem;
       cursor: pointer;
       font-weight: 600;
-      background: #007aff;
+      background: #0a84ff;
       color: #fff;
-      box-shadow: 0 4px 12px rgba(0,122,255,0.25);
+      box-shadow: 0 4px 12px rgba(10,132,255,0.35);
     }
 
     button.secondary {
-      background: #e5e5ea;
-      color: #1c1c1e;
+      background: #3a3a3c;
+      color: #f2f2f7;
       box-shadow: none;
       margin-left: 8px;
     }
 
     .item {
-      background: #ffffff;
+      background: #2c2c2e;
       padding: 14px;
       border-radius: 14px;
       margin-bottom: 10px;
-      box-shadow: 0 2px 10px rgba(0,0,0,0.06);
+      box-shadow: 0 2px 10px rgba(0,0,0,0.4);
       display: flex;
       justify-content: space-between;
       align-items: center;
     }
 
     .item button {
-      background: #ff3b30;
+      background: #ff453a;
       color: #fff;
       padding: 6px 14px;
       font-size: 0.8rem;
@@ -92,9 +95,10 @@
 
     footer {
       text-align: center;
-      opacity: 0.6;
+      opacity: 0.5;
       font-size: 0.85rem;
       margin-top: auto;
+      color: #d1d1d6;
     }
   </style>
 </head>
@@ -114,11 +118,11 @@
   </div>
 
   <div class="card">
-    <h2 style="margin-top:0;">Elementi salvati</h2>
+    <h2 style="margin-top:0;color:#fff;">Elementi salvati</h2>
     <div id="itemsContainer"></div>
   </div>
 
-  <footer>Design stile iOS — PWA elegante</footer>
+  <footer>Design iOS Dark — elegante e moderno</footer>
 
   <script src="app.js"></script>
 </body>
