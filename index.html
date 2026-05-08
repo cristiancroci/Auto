@@ -1,162 +1,134 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="it">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Vault — Drive Sync</title>
-  <link rel="manifest" href="manifest.json">
-  <meta name="theme-color" content="#0b2130">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self' https://accounts.google.com https://www.googleapis.com; script-src 'self' https://accounts.google.com https://apis.google.com; connect-src 'self' https://www.googleapis.com; frame-src https://accounts.google.com; style-src 'self' 'unsafe-inline'">
+  <meta charset="UTF-8" />
+  <title>La Mia App PWA</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <!-- Manifest -->
+  <link rel="manifest" href="manifest.webmanifest">
+
+  <!-- Colore barra indirizzi mobile -->
+  <meta name="theme-color" content="#121212">
+
+  <!-- Stili base -->
   <style>
-    :root{--bg:#eef6fb;--card:#fff;--muted:#6b7b8a;--accent:#00d4ff}
-    html,body{height:100%;margin:0;font-family:system-ui,Segoe UI,Roboto,Arial;background:var(--bg)}
-    .wrap{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px}
-    .card{width:100%;max-width:720px;background:var(--card);padding:18px;border-radius:12px;box-shadow:0 10px 30px rgba(0,0,0,0.08)}
-    h2{margin:0 0 6px 0}
-    .muted{color:var(--muted);font-size:13px}
-    .row{display:flex;gap:8px;margin-top:12px}
-    input,textarea,button{padding:10px;border-radius:8px;border:1px solid #ddd;font-size:15px}
-    textarea{resize:vertical}
-    .btn{background:linear-gradient(90deg,var(--accent),#7b61ff);color:#021025;border:none;font-weight:700;cursor:pointer}
-    .controls{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
-    #log{background:#f6f8fa;padding:8px;border-radius:8px;overflow:auto;height:120px}
-    #msg {position:fixed;left:12px;right:12px;top:12px;z-index:9999;pointer-events:none}
-    .toast{display:inline-block;background:#111;color:#fff;padding:8px 12px;border-radius:8px;margin-bottom:8px;opacity:.95;pointer-events:auto}
-    .toast.error{background:#c62828}
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: #121212;
+      color: #f5f5f5;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+    header {
+      padding: 1rem;
+      background: #1f1f1f;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    header h1 { font-size: 1.1rem; }
+    main {
+      flex: 1;
+      padding: 1rem;
+    }
+    .card {
+      background: #1f1f1f;
+      border-radius: 0.75rem;
+      padding: 1rem;
+      margin-bottom: 1rem;
+    }
+    label {
+      display: block;
+      font-size: 0.85rem;
+      margin-bottom: 0.25rem;
+      opacity: 0.8;
+    }
+    input, textarea {
+      width: 100%;
+      padding: 0.6rem 0.75rem;
+      border-radius: 0.5rem;
+      border: 1px solid #333;
+      background: #181818;
+      color: #f5f5f5;
+      margin-bottom: 0.75rem;
+      font-size: 0.9rem;
+    }
+    button {
+      border: none;
+      border-radius: 999px;
+      padding: 0.6rem 1.2rem;
+      font-size: 0.9rem;
+      cursor: pointer;
+      background: #00b894;
+      color: #fff;
+    }
+    button.secondary {
+      background: #2d3436;
+      margin-left: 0.5rem;
+    }
+    .items {
+      margin-top: 1rem;
+    }
+    .item {
+      padding: 0.75rem;
+      border-radius: 0.5rem;
+      background: #181818;
+      margin-bottom: 0.5rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 0.9rem;
+    }
+    .item span.key {
+      font-weight: 600;
+    }
+    .item button {
+      padding: 0.3rem 0.7rem;
+      font-size: 0.75rem;
+    }
+    footer {
+      padding: 0.75rem 1rem;
+      font-size: 0.75rem;
+      text-align: center;
+      background: #1f1f1f;
+      opacity: 0.8;
+    }
   </style>
 </head>
 <body>
-  <div id="msg" aria-live="polite"></div>
+  <header>
+    <h1>La Mia App PWA</h1>
+    <button id="installBtn" style="display:none;">Installa</button>
+  </header>
 
-  <div class="wrap">
-    <div class="card" role="main" aria-labelledby="title">
-      <h2 id="title">Vault</h2>
-      <div class="muted">Sincronizzazione Google Drive — PIN per sblocco</div>
+  <main>
+    <section class="card">
+      <h2 style="margin-bottom:0.75rem;font-size:1rem;">Aggiungi elemento</h2>
+      <label for="keyInput">Nome</label>
+      <input id="keyInput" type="text" placeholder="Es. Voce 1" />
 
-      <div style="margin-top:12px">Stato: <strong id="st-text">non connesso</strong></div>
+      <label for="valueInput">Valore</label>
+      <textarea id="valueInput" rows="3" placeholder="Contenuto..."></textarea>
 
-      <div style="margin-top:12px">
-        <label>Imposta PIN (4-8 cifre)</label>
-        <div class="row">
-          <input id="pin-input" type="password" inputmode="numeric" placeholder="PIN">
-          <button id="set-pin" class="btn">Imposta PIN</button>
-        </div>
+      <div style="margin-top:0.5rem;">
+        <button id="saveBtn">Salva</button>
+        <button id="clearBtn" class="secondary">Svuota tutto</button>
       </div>
+    </section>
 
-      <div class="controls">
-        <button id="google-login" class="btn">Connetti Google</button>
-        <button id="sync-save" class="btn">Salva su Drive</button>
-        <button id="sync-load" class="btn">Carica da Drive</button>
-        <button id="lock" class="btn">Blocca</button>
-      </div>
+    <section class="card">
+      <h2 style="margin-bottom:0.75rem;font-size:1rem;">Elementi salvati</h2>
+      <div id="itemsContainer" class="items"></div>
+    </section>
+  </main>
 
-      <div style="margin-top:12px">
-        <label>Vault JSON</label>
-        <textarea id="vault-area" style="width:100%;height:160px;padding:10px;border-radius:8px;border:1px solid #ddd"></textarea>
-      </div>
+  <footer>
+    PWA base — offline, installabile, storage locale. Da qui la adattiamo alla tua app reale.
+  </footer>
 
-      <div style="margin-top:12px">
-        <div class="muted">Log</div>
-        <pre id="log"></pre>
-      </div>
-    </div>
-  </div>
-
-  <!-- GSI must load before drive-sync.js -->
-  <script src="https://accounts.google.com/gsi/client" async defer></script>
-
-  <!-- Crypto helpers -->
-  <script src="crypto.js"></script>
-
-  <!-- Drive sync logic -->
-  <script src="drive-sync.js"></script>
-
-  <script>
-    function toast(text, type='info', ttl=5000){
-      const container = document.getElementById('msg');
-      const el = document.createElement('div');
-      el.className = 'toast' + (type==='error' ? ' error' : '');
-      el.textContent = text;
-      container.appendChild(el);
-      setTimeout(()=>{ el.style.transition='opacity .3s'; el.style.opacity='0'; setTimeout(()=>el.remove(),350); }, ttl);
-    }
-
-    const logEl = document.getElementById('log');
-    function log(...args){ logEl.textContent += args.join(' ') + '\n'; logEl.scrollTop = logEl.scrollHeight; }
-
-    // IMPORTANT: call token request synchronously in click handler
-    document.getElementById('google-login').addEventListener('click', () => {
-      try {
-        // If drive-sync exposed a helper to request token synchronously, use it
-        if (window.requestGsiTokenSync) {
-          // requestGsiTokenSync will call tokenClient.requestAccessToken immediately
-          const ok = window.requestGsiTokenSync();
-          if (!ok) throw new Error('Impossibile avviare richiesta token (verifica GSI)');
-          document.getElementById('st-text').textContent = 'autenticazione in corso';
-          log('Richiesta token inviata (popup dovrebbe aprirsi)');
-          toast('Richiesta token inviata');
-          return;
-        }
-        // Fallback: call gdriveInit which may attempt silent; then call interactive
-        if (!window.gdriveInit) throw new Error('Modulo drive non caricato');
-        window.gdriveInit().then(()=>{ document.getElementById('st-text').textContent = 'Google pronto'; toast('Google pronto'); }).catch(()=>{});
-      } catch (e) {
-        document.getElementById('st-text').textContent = 'errore connessione';
-        log('Errore connessione: ' + (e && e.message ? e.message : JSON.stringify(e)));
-        toast('Errore connessione: ' + (e && e.message ? e.message : 'errore'), 'error', 8000);
-      }
-    });
-
-    document.getElementById('set-pin').addEventListener('click', async () => {
-      const pin = document.getElementById('pin-input').value.trim();
-      if (!/^\d{4,8}$/.test(pin)) { log('PIN non valido'); toast('PIN non valido', 'error'); return; }
-      try {
-        if (typeof derivePinHashLocal !== 'function') throw new Error('crypto.js mancante');
-        const salt = crypto.getRandomValues(new Uint8Array(12));
-        const hash = await derivePinHashLocal(pin, salt);
-        localStorage.setItem('vault_pin_salt', btoa(String.fromCharCode(...salt)));
-        localStorage.setItem('vault_pin_hash', hash);
-        log('PIN impostato'); toast('PIN impostato');
-        document.getElementById('pin-input').value = '';
-      } catch (e) {
-        log('Errore impostazione PIN: ' + (e && e.message ? e.message : e));
-        toast('Errore PIN: ' + (e && e.message ? e.message : 'errore'), 'error');
-      }
-    });
-
-    document.getElementById('sync-save').addEventListener('click', async () => {
-      try {
-        if (!window.ensureKeyLoaded || !window.saveVaultToDrive) throw new Error('drive-sync non pronto');
-        const key = await window.ensureKeyLoaded();
-        const plain = document.getElementById('vault-area').value || '{}';
-        const enc = await encryptWithKeyB64(key, plain);
-        await window.saveVaultToDrive(enc);
-        log('Vault salvato su Drive'); toast('Vault salvato su Drive');
-      } catch (e) {
-        log('Errore salvataggio: ' + (e && e.message ? e.message : JSON.stringify(e)));
-        toast('Errore salvataggio: ' + (e && e.message ? e.message : 'errore'), 'error', 8000);
-      }
-    });
-
-    document.getElementById('sync-load').addEventListener('click', async () => {
-      try {
-        if (!window.ensureKeyLoaded || !window.loadVaultFromDrive) throw new Error('drive-sync non pronto');
-        const key = await window.ensureKeyLoaded();
-        const enc = await window.loadVaultFromDrive();
-        if (!enc) { log('Nessun vault su Drive'); toast('Nessun vault su Drive'); return; }
-        const plain = await decryptWithKeyB64(key, enc);
-        document.getElementById('vault-area').value = plain;
-        log('Vault caricato e decrittato'); toast('Vault caricato');
-      } catch (e) {
-        log('Errore caricamento: ' + (e && e.message ? e.message : JSON.stringify(e)));
-        toast('Errore caricamento: ' + (e && e.message ? e.message : 'errore'), 'error', 8000);
-      }
-    });
-
-    document.getElementById('lock').addEventListener('click', () => {
-      document.getElementById('st-text').textContent = 'bloccato';
-      log('Interfaccia bloccata'); toast('Interfaccia bloccata');
-    });
-  </script>
+  <script src="app.js"></script>
 </body>
 </html>
