@@ -47,7 +47,7 @@ function renderItems() {
 
     div.innerHTML = `
       <div class="item-title">${item.title}</div>
-      <div style="opacity:0.7;font-size:0.85rem;">
+      <div style="opacity:0.7;font-size:0.8rem;">
         User: ${item.username || "-"} • PIN: ${item.pin ? "••••" : "-"}
       </div>
       <div class="item-actions">
