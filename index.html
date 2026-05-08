@@ -70,7 +70,27 @@
         </div>
         <div class="muted">Offline ready</div>
       </div>
-
+<!-- DEBUG: mostra errori JS in pagina -->
+<div id="debug-errors" style="position:fixed;left:8px;right:8px;top:8px;z-index:9999;background:#fff6;backdrop-filter:blur(4px);padding:10px;border-radius:8px;max-height:40vh;overflow:auto;font-family:monospace;font-size:13px;color:#000"></div>
+<script>
+  const dbg = document.getElementById('debug-errors');
+  function show(msg){ const p=document.createElement('div'); p.textContent=msg; dbg.appendChild(p); }
+  window.addEventListener('error', e => {
+    show('Error: ' + (e.message || e.type) + ' — ' + (e.filename || '') + ':' + (e.lineno||'') );
+  });
+  window.addEventListener('unhandledrejection', e => {
+    show('UnhandledRejection: ' + (e.reason && (e.reason.message || e.reason)) );
+  });
+  // Log resource load failures
+  window.addEventListener('load', () => {
+    const failed = Array.from(document.querySelectorAll('script,link,img')).filter(el => {
+      if (el.tagName === 'SCRIPT') return el.src && !el.complete && el.naturalWidth===undefined && el.readyState!=='complete';
+      return false;
+    });
+    if (failed.length) show('Risorse potenzialmente fallite: ' + failed.map(f=>f.src||f.href).join(', '));
+  });
+  console.log = (m)=>{ show('LOG: '+ (typeof m === 'object' ? JSON.stringify(m) : m)); };
+</script>
       <div id="root">
         <!-- React will mount here -->
         <div style="text-align:center;padding:40px 12px;color:#6b7b8a">
