@@ -30,6 +30,45 @@
   <b>DEBUG GOOGLE:</b><br>
 </div>
 
+  <!-- DEBUG INIT GOOGLE: mostra errore dettagliato -->
+<div id="gapi-init-debug" style="position:fixed;left:8px;bottom:8px;right:8px;z-index:99999;background:#fff;padding:10px;border-radius:8px;font-family:monospace;font-size:13px;max-height:40vh;overflow:auto;border:1px solid #ccc">
+  <b>INIT DEBUG</b><br>
+</div>
+<script>
+  function dbgInit(msg){ document.getElementById('gapi-init-debug').innerHTML += msg + '<br>'; }
+  (function(){
+    dbgInit('gapi presente? ' + (!!window.gapi));
+    if (!window.gapi) {
+      dbgInit('api.js non presente');
+      return;
+    }
+    // sovrascrive la funzione di init per loggare l'errore
+    window.runGapiInit = async function(){
+      dbgInit('Avvio gapi.load...');
+      try {
+        gapi.load('client:auth2', async () => {
+          try {
+            dbgInit('Chiamo gapi.client.init con clientId: ' + (typeof GAPI_CLIENT_ID !== 'undefined' ? 'OK' : 'MANCANTE'));
+            await gapi.client.init({ clientId: GAPI_CLIENT_ID, scope: GAPI_SCOPES });
+            dbgInit('gapi.client.init OK');
+          } catch (err) {
+            try {
+              dbgInit('ERRORE init (stringified): ' + JSON.stringify(err));
+            } catch(e) {
+              dbgInit('ERRORE init (toString): ' + (err && err.toString ? err.toString() : String(err)));
+            }
+            // se l'errore ha dettagli nested
+            if (err && err.error) dbgInit('err.error: ' + JSON.stringify(err.error));
+            if (err && err.details) dbgInit('err.details: ' + JSON.stringify(err.details));
+          }
+        });
+      } catch(e) {
+        dbgInit('gapi.load throw: ' + (e && e.message ? e.message : String(e)));
+      }
+    };
+    dbgInit('Esegui runGapiInit() to start init and show detailed error.');
+  })();
+</script>
 <script>
 function dbg(msg){
   document.getElementById('gapi-debug').innerHTML += msg + "<br>";
