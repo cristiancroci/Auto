@@ -33,30 +33,17 @@ function resetForm() {
   notesInput.value = "";
 }
 
-/* ORDINAMENTO COMPLETO */
 function sortItems(items) {
   const mode = sortSelect.value;
 
-  if (mode === "name-asc") {
-    return items.sort((a, b) => a.title.localeCompare(b.title));
-  }
-
-  if (mode === "name-desc") {
-    return items.sort((a, b) => b.title.localeCompare(a.title));
-  }
-
-  if (mode === "recent") {
-    return items.sort((a, b) => b.id - a.id);
-  }
-
-  if (mode === "oldest") {
-    return items.sort((a, b) => a.id - b.id);
-  }
+  if (mode === "name-asc") return items.sort((a, b) => a.title.localeCompare(b.title));
+  if (mode === "name-desc") return items.sort((a, b) => b.title.localeCompare(a.title));
+  if (mode === "recent") return items.sort((a, b) => b.id - a.id);
+  if (mode === "oldest") return items.sort((a, b) => a.id - b.id);
 
   return items;
 }
 
-/* RENDER LISTA */
 function renderItems() {
   let items = loadItems();
   items = sortItems(items);
@@ -90,7 +77,6 @@ function renderItems() {
   });
 }
 
-/* MODIFICA */
 function startEdit(id) {
   const items = loadItems();
   const item = items.find(i => i.id === id);
@@ -107,7 +93,6 @@ function startEdit(id) {
   window.scrollTo({ top: 0, behavior: "smooth" });
 }
 
-/* ELIMINA */
 function deleteItem(id) {
   if (!confirm("Eliminare questa voce?")) return;
   const items = loadItems().filter(i => i.id !== id);
@@ -115,7 +100,6 @@ function deleteItem(id) {
   renderItems();
 }
 
-/* SALVA */
 saveBtn.onclick = () => {
   const title = titleInput.value.trim();
   if (!title) {
@@ -145,10 +129,8 @@ saveBtn.onclick = () => {
   renderItems();
 };
 
-/* ANNULLA */
 resetBtn.onclick = resetForm;
 
-/* OCCHI PASSWORD/PIN */
 document.querySelectorAll(".eye").forEach(eye => {
   eye.onclick = () => {
     const target = document.getElementById(eye.dataset.target);
@@ -156,8 +138,6 @@ document.querySelectorAll(".eye").forEach(eye => {
   };
 });
 
-/* CAMBIO ORDINAMENTO */
 sortSelect.onchange = renderItems;
 
-/* INIZIALIZZA */
 renderItems();
