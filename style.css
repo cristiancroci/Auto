@@ -124,22 +124,22 @@ button:hover {
   background-position: right center;
 }
 
-* SALVA — verde acqua cangiante */
+/* SALVA — verde acqua cangiante */
 .btn-save {
   background-image: linear-gradient(135deg, #7fffd4, #00ff99);
 }
 
-* ANNULLA — bordeaux cangiante */
+/* ANNULLA — bordeaux cangiante */
 .btn-cancel {
   background-image: linear-gradient(135deg, #7a003c, #b30059);
 }
 
-* ELIMINA — rosso cangiante */
+/* ELIMINA — rosso cangiante */
 .btn-delete {
   background-image: linear-gradient(135deg, #ff6b6b, #ff0000);
 }
 
-* MODIFICA — verde cangiante */
+/* MODIFICA — verde cangiante */
 .btn-edit {
   background-image: linear-gradient(135deg, #7fffd4, #00ff99);
 }
