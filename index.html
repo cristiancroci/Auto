@@ -11,7 +11,12 @@
       font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", sans-serif;
       background: #000;
       color: #f2f2f7;
-      padding: 12px;
+    }
+
+    .page {
+      max-width: 960px;
+      margin: 0 auto;
+      padding: 16px;
     }
 
     h1 {
@@ -22,9 +27,9 @@
     .layout {
       display: flex;
       gap: 12px;
+      align-items: flex-start;
     }
 
-    /* Smartphone: impila le colonne */
     @media (max-width: 768px) {
       .layout {
         flex-direction: column;
@@ -130,47 +135,177 @@
 </head>
 
 <body>
-  <h1>Vault</h1>
+  <div class="page">
+    <h1>Vault</h1>
 
-  <div class="layout">
-    <!-- COLONNA SINISTRA -->
-    <div class="col">
-      <div class="card">
-        <label>Titolo</label>
-        <input id="titleInput" type="text" placeholder="Es. Gmail">
+    <div class="layout">
+      <!-- SINISTRA -->
+      <div class="col">
+        <div class="card">
+          <label>Titolo</label>
+          <input id="titleInput" type="text" placeholder="Es. Gmail">
 
-        <label>Username / Testo</label>
-        <input id="usernameInput" type="text" placeholder="Es. nome.utente">
+          <label>Username / Testo</label>
+          <input id="usernameInput" type="text" placeholder="Es. nome.utente">
 
-        <label>Password</label>
-        <div class="input-wrap">
-          <input id="passwordInput" type="password" placeholder="••••••••">
-          <span class="eye" data-target="passwordInput">👁️</span>
+          <label>Password</label>
+          <div class="input-wrap">
+            <input id="passwordInput" type="password" placeholder="••••••••">
+            <span class="eye" data-target="passwordInput">👁️</span>
+          </div>
+
+          <label>PIN</label>
+          <div class="input-wrap">
+            <input id="pinInput" type="password" inputmode="numeric" placeholder="1234">
+            <span class="eye" data-target="pinInput">👁️</span>
+          </div>
+
+          <label>Note (opzionali)</label>
+          <textarea id="notesInput" rows="2" placeholder="Aggiungi note..."></textarea>
+
+          <button class="btn-primary" id="saveBtn">Salva</button>
+          <button class="btn-secondary" id="resetBtn">Annulla</button>
         </div>
-
-        <label>PIN</label>
-        <div class="input-wrap">
-          <input id="pinInput" type="password" inputmode="numeric" placeholder="1234">
-          <span class="eye" data-target="pinInput">👁️</span>
-        </div>
-
-        <label>Note (opzionali)</label>
-        <textarea id="notesInput" rows="2" placeholder="Aggiungi note..."></textarea>
-
-        <button class="btn-primary" id="saveBtn">Salva</button>
-        <button class="btn-secondary" id="resetBtn">Annulla</button>
       </div>
-    </div>
 
-    <!-- COLONNA DESTRA -->
-    <div class="col">
-      <div class="card">
-        <h3 style="margin-top:0;">Voci salvate</h3>
-        <div id="itemsContainer"></div>
+      <!-- DESTRA -->
+      <div class="col">
+        <div class="card">
+          <h3 style="margin-top:0;">Voci salvate</h3>
+          <div id="itemsContainer"></div>
+        </div>
       </div>
     </div>
   </div>
 
-  <script src="app.js"></script>
+  <script>
+    const STORAGE_KEY = "vault-items";
+    let editingId = null;
+
+    const titleInput = document.getElementById("titleInput");
+    const usernameInput = document.getElementById("usernameInput");
+    const passwordInput = document.getElementById("passwordInput");
+    const pinInput = document.getElementById("pinInput");
+    const notesInput = document.getElementById("notesInput");
+
+    const saveBtn = document.getElementById("saveBtn");
+    const resetBtn = document.getElementById("resetBtn");
+    const itemsContainer = document.getElementById("itemsContainer");
+
+    function loadItems() {
+      try {
+        return JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
+      } catch {
+        return [];
+      }
+    }
+
+    function saveItems(items) {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(items));
+    }
+
+    function resetForm() {
+      editingId = null;
+      titleInput.value = "";
+      usernameInput.value = "";
+      passwordInput.value = "";
+      pinInput.value = "";
+      notesInput.value = "";
+    }
+
+    function renderItems() {
+      const items = loadItems();
+      itemsContainer.innerHTML = "";
+
+      if (!items.length) {
+        itemsContainer.innerHTML = "<p style='opacity:0.6;font-size:0.8rem;'>Nessuna voce salvata.</p>";
+        return;
+      }
+
+      items.forEach(item => {
+        const div = document.createElement("div");
+        div.className = "item";
+
+        div.innerHTML = `
+          <div class="item-title">${item.title}</div>
+          <div style="opacity:0.7;font-size:0.8rem;">
+            User: ${item.username || "-"} • PIN: ${item.pin ? "••••" : "-"}
+          </div>
+          <div class="item-actions">
+            <button class="btn-small btn-edit">Modifica</button>
+            <button class="btn-small btn-delete">Elimina</button>
+          </div>
+        `;
+
+        div.querySelector(".btn-edit").onclick = () => startEdit(item.id);
+        div.querySelector(".btn-delete").onclick = () => deleteItem(item.id);
+
+        itemsContainer.appendChild(div);
+      });
+    }
+
+    function startEdit(id) {
+      const items = loadItems();
+      const item = items.find(i => i.id === id);
+      if (!item) return;
+
+      editingId = id;
+
+      titleInput.value = item.title;
+      usernameInput.value = item.username;
+      passwordInput.value = item.password;
+      pinInput.value = item.pin;
+      notesInput.value = item.notes;
+
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+
+    function deleteItem(id) {
+      if (!confirm("Eliminare questa voce?")) return;
+      const items = loadItems().filter(i => i.id !== id);
+      saveItems(items);
+      renderItems();
+    }
+
+    saveBtn.onclick = () => {
+      const title = titleInput.value.trim();
+      if (!title) {
+        alert("Inserisci un titolo");
+        return;
+      }
+
+      const item = {
+        id: editingId || Date.now(),
+        title,
+        username: usernameInput.value.trim(),
+        password: passwordInput.value.trim(),
+        pin: pinInput.value.trim(),
+        notes: notesInput.value.trim(),
+      };
+
+      let items = loadItems();
+
+      if (editingId) {
+        items = items.map(i => (i.id === editingId ? item : i));
+      } else {
+        items.push(item);
+      }
+
+      saveItems(items);
+      resetForm();
+      renderItems();
+    };
+
+    resetBtn.onclick = resetForm;
+
+    document.querySelectorAll(".eye").forEach(eye => {
+      eye.onclick = () => {
+        const target = document.getElementById(eye.dataset.target);
+        target.type = target.type === "password" ? "text" : "password";
+      };
+    });
+
+    renderItems();
+  </script>
 </body>
 </html>
