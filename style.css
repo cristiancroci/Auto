@@ -1,0 +1,166 @@
+/* ===========================
+   PALETTE (modificabile)
+=========================== */
+:root {
+  --bg: #e9eaed;              /* sfondo generale chiaro */
+  --card-bg: #1c1c1e;         /* card scure */
+  --card-bg-2: #2c2c2e;
+  --border: #3a3a3c;
+
+  --text: #000;
+  --text-light: #f2f2f7;
+
+  --primary: #0a84ff;         /* blu iOS */
+  --danger: #ff453a;
+  --secondary: #3a3a3c;
+}
+
+/* ===========================
+   LAYOUT GENERALE
+=========================== */
+body {
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", sans-serif;
+  background: var(--bg);
+  color: var(--text);
+}
+
+.page {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 16px;
+  box-sizing: border-box;
+}
+
+/* Titolo più marcato */
+h1 {
+  font-size: 2rem;
+  font-weight: 800;
+  margin-bottom: 16px;
+  text-align: center;
+  color: #000;
+}
+
+/* ===========================
+   DUE COLONNE STABILI
+=========================== */
+.layout {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  align-items: start;
+}
+
+@media (max-width: 768px) {
+  .layout {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ===========================
+   CARD
+=========================== */
+.card {
+  background: var(--card-bg);
+  border-radius: 14px;
+  padding: 14px;
+  box-shadow: 0 4px 14px rgba(0,0,0,0.4);
+  width: 100%;
+  box-sizing: border-box;
+  overflow: hidden;
+  color: var(--text-light);
+}
+
+/* ===========================
+   INPUT
+=========================== */
+label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  margin-bottom: 3px;
+  display: block;
+}
+
+.input-wrap {
+  position: relative;
+  margin-bottom: 8px;
+}
+
+input, textarea {
+  width: 100%;
+  padding: 8px 10px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: var(--card-bg-2);
+  color: var(--text-light);
+  font-size: 0.85rem;
+  box-sizing: border-box;
+}
+
+.eye {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 1rem;
+  cursor: pointer;
+  opacity: 0.7;
+}
+
+/* ===========================
+   BOTTONI
+=========================== */
+button {
+  width: 100%;
+  padding: 10px;
+  border-radius: 999px;
+  border: none;
+  font-size: 0.9rem;
+  font-weight: 600;
+  margin-top: 6px;
+  cursor: pointer;
+}
+
+.btn-primary {
+  background: var(--primary);
+  color: #fff;
+}
+
+.btn-secondary {
+  background: var(--secondary);
+  color: #fff;
+}
+
+/* ===========================
+   LISTA ELEMENTI
+=========================== */
+.item {
+  background: var(--card-bg-2);
+  padding: 10px;
+  border-radius: 12px;
+  margin-bottom: 8px;
+}
+
+.item-title {
+  font-weight: 600;
+  margin-bottom: 4px;
+  font-size: 0.9rem;
+}
+
+.item-actions {
+  display: flex;
+  gap: 6px;
+  margin-top: 6px;
+}
+
+.btn-small {
+  flex: 1;
+  padding: 6px;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  border: none;
+  cursor: pointer;
+}
+
+.btn-edit { background: var(--primary); color: #fff; }
+.btn-delete { background: var(--danger); color: #fff; }
