@@ -1,9 +1,9 @@
 /* ===========================
-   PALETTE (modificabile)
+   PALETTE
 =========================== */
 :root {
-  --bg: #e9eaed;              /* sfondo generale chiaro */
-  --card-bg: #1c1c1e;         /* card scure */
+  --bg: #e9eaed;
+  --card-bg: #1c1c1e;
   --card-bg-2: #2c2c2e;
   --border: #3a3a3c;
 
@@ -37,13 +37,12 @@ h1 {
 }
 
 /* ===========================
-   DUE COLONNE STABILI
+   DUE COLONNE
 =========================== */
 .layout {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 16px;
-  align-items: start;
 }
 
 @media (max-width: 768px) {
@@ -59,11 +58,8 @@ h1 {
   background: var(--card-bg);
   border-radius: 14px;
   padding: 14px;
-  box-shadow: 0 4px 14px rgba(0,0,0,0.4);
-  width: 100%;
-  box-sizing: border-box;
-  overflow: hidden;
   color: var(--text-light);
+  box-shadow: 0 4px 14px rgba(0,0,0,0.4);
 }
 
 /* ===========================
@@ -88,8 +84,6 @@ input, textarea {
   border: 1px solid var(--border);
   background: var(--card-bg-2);
   color: var(--text-light);
-  font-size: 0.85rem;
-  box-sizing: border-box;
 }
 
 .eye {
@@ -97,13 +91,12 @@ input, textarea {
   right: 10px;
   top: 50%;
   transform: translateY(-50%);
-  font-size: 1rem;
   cursor: pointer;
   opacity: 0.7;
 }
 
 /* ===========================
-   BOTTONI CANGIANTI INDIPENDENTI
+   BOTTONI CANGIANTI
 =========================== */
 
 button {
@@ -124,22 +117,22 @@ button:hover {
   background-position: right center;
 }
 
-/* SALVA — verde acqua cangiante */
+/* SALVA — verde acqua */
 .btn-save {
   background-image: linear-gradient(135deg, #7fffd4, #00ff99);
 }
 
-/* ANNULLA — bordeaux cangiante */
+/* ANNULLA — bordeaux */
 .btn-cancel {
   background-image: linear-gradient(135deg, #7a003c, #b30059);
 }
 
-/* ELIMINA — rosso cangiante */
+/* ELIMINA — rosso */
 .btn-delete {
   background-image: linear-gradient(135deg, #ff6b6b, #ff0000);
 }
 
-/* MODIFICA — verde cangiante */
+/* MODIFICA — verde */
 .btn-edit {
   background-image: linear-gradient(135deg, #7fffd4, #00ff99);
 }
@@ -157,13 +150,11 @@ button:hover {
 .item-title {
   font-weight: 600;
   margin-bottom: 4px;
-  font-size: 0.9rem;
 }
 
 .item-actions {
   display: flex;
   gap: 6px;
-  margin-top: 6px;
 }
 
 .btn-small {
@@ -171,8 +162,6 @@ button:hover {
   padding: 6px;
   border-radius: 999px;
   font-size: 0.75rem;
-  border: none;
-  cursor: pointer;
   color: #fff;
   background-size: 200% 200%;
   transition: background-position 0.6s ease;
@@ -180,4 +169,14 @@ button:hover {
 
 .btn-small:hover {
   background-position: right center;
+}
+
+/* SELECT ORDINAMENTO */
+.sort-select {
+  background: var(--card-bg-2);
+  color: var(--text-light);
+  padding: 6px 10px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  font-size: 0.8rem;
 }
