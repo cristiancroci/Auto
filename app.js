@@ -128,7 +128,7 @@ async function saveAll() {
    UI
 ========================================= */
 function renderItems() {
-    const list = document.getElementById("savedList");
+    const list = document.getElementById("itemsContainer");
     list.innerHTML = "";
 
     if (!items || items.length === 0) {
@@ -153,12 +153,12 @@ function viewItem(index) {
     if (!item) return;
 
     document.getElementById("viewTitle").textContent = item.title || "";
-    document.getElementById("viewUsername").textContent = item.username || "";
-    document.getElementById("viewPassword").textContent = item.password || "";
+    document.getElementById("viewUser").textContent = item.username || "";
+    document.getElementById("viewPass").textContent = item.password || "";
     document.getElementById("viewPin").textContent = item.pin || "";
-    document.getElementById("viewNote").textContent = item.note || "";
+    document.getElementById("viewNotes").textContent = item.note || "";
 
-    document.getElementById("viewModal").classList.add("open");
+    document.getElementById("viewOverlay").classList.add("open");
 }
 
 /* =========================================
@@ -198,11 +198,11 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const saveBtn = document.getElementById("saveBtn");
     saveBtn.onclick = async () => {
-        const title = document.getElementById("title").value.trim();
-        const username = document.getElementById("username").value.trim();
-        const password = document.getElementById("password").value.trim();
-        const pin = document.getElementById("pin").value.trim();
-        const note = document.getElementById("note").value.trim();
+        const title = document.getElementById("titleInput").value.trim();
+        const username = document.getElementById("usernameInput").value.trim();
+        const password = document.getElementById("passwordInput").value.trim();
+        const pin = document.getElementById("pinInput").value.trim();
+        const note = document.getElementById("notesInput").value.trim();
 
         if (!title && !username && !password && !pin && !note) {
             return;
@@ -212,10 +212,10 @@ document.addEventListener("DOMContentLoaded", () => {
         await saveAll();
         renderItems();
 
-        document.getElementById("title").value = "";
-        document.getElementById("username").value = "";
-        document.getElementById("password").value = "";
-        document.getElementById("pin").value = "";
-        document.getElementById("note").value = "";
+        document.getElementById("titleInput").value = "";
+        document.getElementById("usernameInput").value = "";
+        document.getElementById("passwordInput").value = "";
+        document.getElementById("pinInput").value = "";
+        document.getElementById("notesInput").value = "";
     };
 });
