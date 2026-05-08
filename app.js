@@ -1,7 +1,11 @@
+/* ============================================================
+   VARIABILI GLOBALI
+============================================================ */
 const STORAGE_KEY = "vault-encrypted";
 let editingId = null;
-let masterKey = null; // derivata dalla master password
+let masterKey = null;
 
+/* ELEMENTI DOM */
 const titleInput = document.getElementById("titleInput");
 const usernameInput = document.getElementById("usernameInput");
 const passwordInput = document.getElementById("passwordInput");
@@ -17,11 +21,26 @@ const masterOverlay = document.getElementById("masterOverlay");
 const masterInput = document.getElementById("masterInput");
 const unlockBtn = document.getElementById("unlockBtn");
 
-/* ========== CRITTOGRAFIA SEMPLIFICATA (AES-GCM) ========== */
+/* POPUP VISUALIZZA */
+const viewOverlay = document.getElementById("viewOverlay");
+const viewTitle = document.getElementById("viewTitle");
+const viewUser = document.getElementById("viewUser");
+const viewPass = document.getElementById("viewPass");
+const viewPin = document.getElementById("viewPin");
+const viewNotes = document.getElementById("viewNotes");
+const viewEdit = document.getElementById("viewEdit");
+const viewDelete = document.getElementById("viewDelete");
+const viewClose = document.getElementById("viewClose");
 
+let currentViewId = null;
+
+/* ============================================================
+   CRITTOGRAFIA AES-GCM
+============================================================ */
 async function deriveKeyFromPassword(password) {
   const enc = new TextEncoder();
-  const salt = enc.encode("vault-static-salt"); // per ora fisso (step dopo si può migliorare)
+  const salt = enc.encode("vault-static-salt");
+
   const baseKey = await crypto.subtle.importKey(
     "raw",
     enc.encode(password),
@@ -29,6 +48,7 @@ async function deriveKeyFromPassword(password) {
     false,
     ["deriveKey"]
   );
+
   return crypto.subtle.deriveKey(
     {
       name: "PBKDF2",
@@ -45,33 +65,41 @@ async function deriveKeyFromPassword(password) {
 
 async function encryptData(obj) {
   if (!masterKey) return null;
+
   const enc = new TextEncoder();
   const iv = crypto.getRandomValues(new Uint8Array(12));
   const data = enc.encode(JSON.stringify(obj));
+
   const cipher = await crypto.subtle.encrypt(
     { name: "AES-GCM", iv },
     masterKey,
     data
   );
+
   const buff = new Uint8Array(cipher);
   const full = new Uint8Array(iv.length + buff.length);
   full.set(iv, 0);
   full.set(buff, iv.length);
+
   return btoa(String.fromCharCode(...full));
 }
 
 async function decryptData(str) {
   if (!masterKey) return [];
+
   try {
     const bin = atob(str);
     const bytes = new Uint8Array([...bin].map(c => c.charCodeAt(0)));
+
     const iv = bytes.slice(0, 12);
     const data = bytes.slice(12);
+
     const plain = await crypto.subtle.decrypt(
       { name: "AES-GCM", iv },
       masterKey,
       data
     );
+
     const dec = new TextDecoder().decode(plain);
     return JSON.parse(dec);
   } catch {
@@ -79,8 +107,9 @@ async function decryptData(str) {
   }
 }
 
-/* ========== STORAGE ========== */
-
+/* ============================================================
+   STORAGE
+============================================================ */
 async function loadItems() {
   const encrypted = localStorage.getItem(STORAGE_KEY);
   if (!encrypted) return [];
@@ -94,8 +123,9 @@ async function saveItems(items) {
   }
 }
 
-/* ========== UI ========== */
-
+/* ============================================================
+   UI
+============================================================ */
 function resetForm() {
   editingId = null;
   titleInput.value = "";
@@ -136,19 +166,64 @@ async function renderItems() {
       <div style="opacity:0.7;font-size:0.8rem;">
         User: ${item.username || "-"} • PIN: ${item.pin ? "••••" : "-"}
       </div>
-      <div class="item-actions">
-        <button class="btn-small btn-edit">✏️ Modifica</button>
-        <button class="btn-small btn-delete">🗑️ Elimina</button>
-      </div>
     `;
 
-    div.querySelector(".btn-edit").onclick = () => startEdit(item.id);
-    div.querySelector(".btn-delete").onclick = () => deleteItem(item.id);
+    div.onclick = () => openView(item);
 
     itemsContainer.appendChild(div);
   });
 }
 
+/* ============================================================
+   POPUP VISUALIZZA
+============================================================ */
+function openView(item) {
+  currentViewId = item.id;
+
+  viewTitle.textContent = item.title;
+  viewUser.textContent = item.username || "-";
+  viewPass.textContent = item.password || "-";
+  viewPin.textContent = item.pin || "-";
+  viewNotes.textContent = item.notes || "-";
+
+  viewOverlay.style.display = "flex";
+}
+
+viewClose.onclick = () => {
+  viewOverlay.style.display = "none";
+};
+
+viewEdit.onclick = async () => {
+  const items = await loadItems();
+  const item = items.find(i => i.id === currentViewId);
+  if (!item) return;
+
+  editingId = item.id;
+
+  titleInput.value = item.title;
+  usernameInput.value = item.username;
+  passwordInput.value = item.password;
+  pinInput.value = item.pin;
+  notesInput.value = item.notes;
+
+  viewOverlay.style.display = "none";
+  window.scrollTo({ top: 0, behavior: "smooth" });
+};
+
+viewDelete.onclick = async () => {
+  if (!confirm("Eliminare questa voce?")) return;
+
+  let items = await loadItems();
+  items = items.filter(i => i.id !== currentViewId);
+
+  await saveItems(items);
+  viewOverlay.style.display = "none";
+  await renderItems();
+};
+
+/* ============================================================
+   MODIFICA / SALVATAGGIO
+============================================================ */
 async function startEdit(id) {
   const items = await loadItems();
   const item = items.find(i => i.id === id);
@@ -167,13 +242,13 @@ async function startEdit(id) {
 
 async function deleteItem(id) {
   if (!confirm("Eliminare questa voce?")) return;
+
   let items = await loadItems();
   items = items.filter(i => i.id !== id);
+
   await saveItems(items);
   await renderItems();
 }
-
-/* ========== EVENTI ========== */
 
 saveBtn.onclick = async () => {
   const title = titleInput.value.trim();
@@ -206,6 +281,9 @@ saveBtn.onclick = async () => {
 
 resetBtn.onclick = resetForm;
 
+/* ============================================================
+   OCCHI PASSWORD
+============================================================ */
 document.querySelectorAll(".eye").forEach(eye => {
   eye.onclick = () => {
     const target = document.getElementById(eye.dataset.target);
@@ -213,12 +291,16 @@ document.querySelectorAll(".eye").forEach(eye => {
   };
 });
 
+/* ============================================================
+   ORDINAMENTO
+============================================================ */
 sortSelect.onchange = () => {
   renderItems();
 };
 
-/* ========== MASTER PASSWORD FLOW ========== */
-
+/* ============================================================
+   MASTER PASSWORD
+============================================================ */
 unlockBtn.onclick = async () => {
   const pwd = masterInput.value.trim();
   if (!pwd) {
@@ -227,11 +309,11 @@ unlockBtn.onclick = async () => {
   }
 
   masterKey = await deriveKeyFromPassword(pwd);
+
   masterOverlay.style.display = "none";
   await renderItems();
 };
 
-/* opzionale: invio con Enter */
 masterInput.addEventListener("keydown", e => {
   if (e.key === "Enter") unlockBtn.click();
 });
