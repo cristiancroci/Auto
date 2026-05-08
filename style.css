@@ -9,7 +9,7 @@
 }
 
 /* ===========================
-   LAYOUT GENERALE
+   BASE
 =========================== */
 body {
   margin: 0;
@@ -36,20 +36,20 @@ h1 {
 }
 
 /* ===========================
-   GRIGLIA RESPONSIVE
+   GRIGLIA RESPONSIVE PERFETTA
 =========================== */
 .layout {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
   gap: 16px;
   width: 100%;
+  justify-items: center; /* CENTRA LE CARD */
   box-sizing: border-box;
 }
 
 @media (max-width: 768px) {
   .layout {
-    grid-template-columns: 1fr;
-    padding: 0 12px; /* CENTRA LE CARD SU MOBILE */
+    padding: 0 12px; /* CENTRA SU MOBILE */
   }
 }
 
@@ -63,7 +63,8 @@ h1 {
   color: var(--text-light);
   box-shadow: 0 4px 14px rgba(0,0,0,0.4);
   width: 100%;
-  box-sizing: border-box; /* EVITA DECENTRAMENTI */
+  max-width: 420px; /* BLOCCA LA LARGHEZZA */
+  box-sizing: border-box;
 }
 
 /* ===========================
