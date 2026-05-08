@@ -127,7 +127,7 @@ button {
 }
 
 .btn-secondary {
-  background: var(--secondary);
+  background: linear-gradient(135deg, #00c6ff, #00ff9d);
   color: #fff;
 }
 
