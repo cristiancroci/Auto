@@ -26,6 +26,7 @@
     #debug-overlay .hdr{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:8px}
     #debug-overlay button{font-size:12px;padding:6px 8px;border-radius:6px}
     #debug-overlay.collapsed{max-height:36px;overflow:hidden}
+    #debug-overlay .drag-handle{cursor:move;padding:6px 8px;border-radius:6px;background:#f3f4f6;margin-right:8px}
     @media (max-width:520px){
       .card{padding:12px}
       #debug-overlay{left:8px;right:8px;bottom:8px}
@@ -70,10 +71,10 @@
   <!-- Google API must be loaded before drive-sync.js -->
   <script src="https://apis.google.com/js/api.js"></script>
 
-  <!-- Crypto helpers (assume crypto.js present in same folder) -->
+  <!-- Crypto helpers (crypto.js) -->
   <script src="crypto.js"></script>
 
-  <!-- Drive sync logic (assume drive-sync.js present in same folder) -->
+  <!-- Drive sync logic (drive-sync.js) -->
   <script src="drive-sync.js"></script>
 
   <!-- Service worker registration -->
@@ -83,37 +84,80 @@
     }
   </script>
 
-  <!-- UI glue and debug integration -->
+  <!-- UI glue and robust debug overlay (single, collapsible, draggable) -->
   <script>
     // Simple logger to page
     const logEl = document.getElementById('log');
     function log(...args){ logEl.textContent += args.join(' ') + '\n'; logEl.scrollTop = logEl.scrollHeight; }
 
-    // Prevent multiple debug overlays: remove if exists
+    // Create single debug overlay (remove previous if any)
     (function ensureSingleDebugOverlay(){
       const existing = document.getElementById('debug-overlay');
       if (existing) existing.remove();
-      // create overlay
+
       const dbg = document.createElement('div');
       dbg.id = 'debug-overlay';
       dbg.innerHTML = `
         <div class="hdr">
-          <strong>DEBUG GOOGLE</strong>
+          <div style="display:flex;align-items:center">
+            <div class="drag-handle" id="dbg-drag">☰</div>
+            <strong>DEBUG GOOGLE</strong>
+          </div>
           <div>
             <button id="dbg-toggle">Riduci</button>
             <button id="dbg-clear">Pulisci</button>
+            <button id="dbg-hide">Nascondi</button>
           </div>
         </div>
         <div id="dbg-body"><div id="dbg-lines">Caricamento debug...</div></div>
       `;
       document.body.appendChild(dbg);
-      document.getElementById('dbg-toggle').addEventListener('click', () => {
+
+      const toggle = document.getElementById('dbg-toggle');
+      const clear = document.getElementById('dbg-clear');
+      const hide = document.getElementById('dbg-hide');
+      toggle.addEventListener('click', () => {
         dbg.classList.toggle('collapsed');
-        document.getElementById('dbg-toggle').textContent = dbg.classList.contains('collapsed') ? 'Espandi' : 'Riduci';
+        toggle.textContent = dbg.classList.contains('collapsed') ? 'Espandi' : 'Riduci';
       });
-      document.getElementById('dbg-clear').addEventListener('click', () => {
-        document.getElementById('dbg-lines').innerHTML = '';
-      });
+      clear.addEventListener('click', () => { document.getElementById('dbg-lines').innerHTML = ''; });
+      hide.addEventListener('click', () => { dbg.style.display = 'none'; });
+
+      // draggable
+      const handle = document.getElementById('dbg-drag');
+      let isDragging = false, startX=0, startY=0, startLeft=0, startBottom=0;
+      handle.addEventListener('touchstart', startDrag, {passive:true});
+      handle.addEventListener('mousedown', startDrag);
+      function startDrag(e){
+        isDragging = true;
+        const p = (e.touches && e.touches[0]) || e;
+        startX = p.clientX; startY = p.clientY;
+        const rect = dbg.getBoundingClientRect();
+        startLeft = rect.left;
+        startBottom = window.innerHeight - rect.bottom;
+        document.addEventListener('mousemove', onDrag);
+        document.addEventListener('mouseup', endDrag);
+        document.addEventListener('touchmove', onDrag, {passive:true});
+        document.addEventListener('touchend', endDrag);
+      }
+      function onDrag(e){
+        if (!isDragging) return;
+        const p = (e.touches && e.touches[0]) || e;
+        const dx = p.clientX - startX;
+        const dy = p.clientY - startY;
+        let newLeft = Math.max(8, Math.min(window.innerWidth - dbg.offsetWidth - 8, startLeft + dx));
+        let newBottom = Math.max(8, Math.min(window.innerHeight - 36, startBottom - dy));
+        dbg.style.left = newLeft + 'px';
+        dbg.style.right = 'auto';
+        dbg.style.bottom = newBottom + 'px';
+      }
+      function endDrag(){
+        isDragging = false;
+        document.removeEventListener('mousemove', onDrag);
+        document.removeEventListener('mouseup', endDrag);
+        document.removeEventListener('touchmove', onDrag);
+        document.removeEventListener('touchend', endDrag);
+      }
     })();
 
     function dbg(msg){
@@ -122,7 +166,7 @@
       el.parentElement.scrollTop = el.parentElement.scrollHeight;
     }
 
-    // initial debug state
+    // initial debug checks
     dbg('gapi presente? ' + (!!window.gapi));
     if (!window.gapi) {
       dbg('gapi NON presente, provo a caricare api.js...');
@@ -163,13 +207,11 @@
     // Wire Connetti Google button to runGapiInit and to existing gdriveInit if present
     document.getElementById('google-login').addEventListener('click', async () => {
       dbg('Connetti Google premuto (azione utente)');
-      // first run the debug init to capture errors
       try {
         await runGapiInit();
       } catch(e) {
         dbg('runGapiInit error: ' + (e && e.message ? e.message : String(e)));
       }
-      // if drive-sync exposes gdriveInit, call it and log result
       if (window.gdriveInit) {
         try {
           dbg('Chiamo gdriveInit() (drive-sync.js)');
@@ -254,7 +296,7 @@
       } catch(e) { dbg('load error: ' + (e && e.message ? e.message : JSON.stringify(e))); }
     });
 
-    // Small helper to show instructions in debug overlay
+    // Final instruction lines
     dbg('Interfaccia pronta. Premi "Connetti Google" per iniziare.');
     dbg('Se vedi "ERRORE init" copia qui il contenuto esatto per assistenza.');
   </script>
