@@ -33,6 +33,7 @@ function resetForm() {
   notesInput.value = "";
 }
 
+/* ORDINAMENTO COMPLETO */
 function sortItems(items) {
   const mode = sortSelect.value;
 
@@ -55,6 +56,7 @@ function sortItems(items) {
   return items;
 }
 
+/* RENDER LISTA */
 function renderItems() {
   let items = loadItems();
   items = sortItems(items);
@@ -88,6 +90,7 @@ function renderItems() {
   });
 }
 
+/* MODIFICA */
 function startEdit(id) {
   const items = loadItems();
   const item = items.find(i => i.id === id);
@@ -104,6 +107,7 @@ function startEdit(id) {
   window.scrollTo({ top: 0, behavior: "smooth" });
 }
 
+/* ELIMINA */
 function deleteItem(id) {
   if (!confirm("Eliminare questa voce?")) return;
   const items = loadItems().filter(i => i.id !== id);
@@ -111,6 +115,7 @@ function deleteItem(id) {
   renderItems();
 }
 
+/* SALVA */
 saveBtn.onclick = () => {
   const title = titleInput.value.trim();
   if (!title) {
@@ -140,6 +145,7 @@ saveBtn.onclick = () => {
   renderItems();
 };
 
+/* ANNULLA */
 resetBtn.onclick = resetForm;
 
 /* OCCHI PASSWORD/PIN */
@@ -150,8 +156,8 @@ document.querySelectorAll(".eye").forEach(eye => {
   };
 });
 
-/* RENDER iniziale */
-renderItems();
-
-/* RENDER quando cambia ordinamento */
+/* CAMBIO ORDINAMENTO */
 sortSelect.onchange = renderItems;
+
+/* INIZIALIZZA */
+renderItems();
