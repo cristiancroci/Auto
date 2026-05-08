@@ -1,6 +1,3 @@
-/* ===========================
-   PALETTE
-=========================== */
 :root {
   --bg: #e9eaed;
   --card-bg: #1c1c1e;
@@ -11,9 +8,7 @@
   --text-light: #f2f2f7;
 }
 
-/* ===========================
-   LAYOUT GENERALE
-=========================== */
+/* LAYOUT GENERALE */
 body {
   margin: 0;
   font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", sans-serif;
@@ -36,9 +31,7 @@ h1 {
   color: #000;
 }
 
-/* ===========================
-   DUE COLONNE
-=========================== */
+/* DUE COLONNE */
 .layout {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -51,9 +44,7 @@ h1 {
   }
 }
 
-/* ===========================
-   CARD
-=========================== */
+/* CARD */
 .card {
   background: var(--card-bg);
   border-radius: 14px;
@@ -62,9 +53,7 @@ h1 {
   box-shadow: 0 4px 14px rgba(0,0,0,0.4);
 }
 
-/* ===========================
-   INPUT
-=========================== */
+/* INPUT */
 label {
   font-size: 0.75rem;
   font-weight: 600;
@@ -95,10 +84,7 @@ input, textarea {
   opacity: 0.7;
 }
 
-/* ===========================
-   BOTTONI CANGIANTI + GLOW
-=========================== */
-
+/* BOTTONI CANGIANTI + GLOW */
 button {
   width: 100%;
   padding: 10px;
@@ -142,9 +128,7 @@ button:hover {
   box-shadow: 0 0 10px rgba(0,255,150,0.4);
 }
 
-/* ===========================
-   LISTA ELEMENTI
-=========================== */
+/* LISTA ELEMENTI */
 .item {
   background: var(--card-bg-2);
   padding: 10px;
@@ -177,9 +161,7 @@ button:hover {
   box-shadow: 0 0 10px rgba(255,255,255,0.4);
 }
 
-/* ===========================
-   SELECT ORDINAMENTO — NEUTRO
-=========================== */
+/* SELECT ORDINAMENTO — NEUTRO */
 .sort-select {
   background: var(--card-bg-2);
   color: var(--text-light);
@@ -188,4 +170,35 @@ button:hover {
   border: 1px solid var(--border);
   font-size: 0.8rem;
   width: auto;
+}
+
+/* OVERLAY MASTER PASSWORD */
+.overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 999;
+}
+
+.overlay-card {
+  background: var(--card-bg);
+  padding: 20px;
+  border-radius: 16px;
+  width: 90%;
+  max-width: 360px;
+  box-shadow: 0 8px 30px rgba(0,0,0,0.6);
+  color: var(--text-light);
+}
+
+.overlay-card h2 {
+  margin-top: 0;
+  margin-bottom: 10px;
+}
+
+.overlay-card input {
+  margin-top: 10px;
+  margin-bottom: 10px;
 }
