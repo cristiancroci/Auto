@@ -1,5 +1,5 @@
 // drive-sync.js (GSI + Drive REST, appDataFolder)
-// Sostituisci il valore di GAPI_CLIENT_ID con il tuo Client ID reale
+// Client ID inserito come richiesto
 const GAPI_CLIENT_ID = '776375898567-ee2jfmfd9cte7dp6fj02k5ubpvag4e29.apps.googleusercontent.com';
 const GAPI_SCOPES = 'https://www.googleapis.com/auth/drive.appdata';
 
@@ -87,27 +87,49 @@ async function findFileByName(name) {
 
 async function uploadFileToAppData(name, content, mime='application/octet-stream') {
   const existing = await findFileByName(name);
-  const metadata = { name, parents: ['appDataFolder'] };
+  const metadataCreate = { name, parents: ['appDataFolder'] };
+  const metadataUpdate = { name }; // NON includere parents per update
+
   const boundary = '-------vault' + Math.random().toString(36).slice(2);
-  const bodyParts = [];
-  bodyParts.push(`--${boundary}\r\nContent-Type: application/json; charset=UTF-8\r\n\r\n${JSON.stringify(metadata)}\r\n`);
-  bodyParts.push(`--${boundary}\r\nContent-Type: ${mime}\r\n\r\n`);
-  bodyParts.push(content + '\r\n');
-  bodyParts.push(`--${boundary}--`);
-  const body = new Blob(bodyParts, { type: 'multipart/related; boundary=' + boundary });
+  const buildMultipart = (metadata) => {
+    const parts = [];
+    parts.push(`--${boundary}\r\nContent-Type: application/json; charset=UTF-8\r\n\r\n${JSON.stringify(metadata)}\r\n`);
+    parts.push(`--${boundary}\r\nContent-Type: ${mime}\r\n\r\n`);
+    parts.push(content + '\r\n');
+    parts.push(`--${boundary}--`);
+    return new Blob(parts, { type: 'multipart/related; boundary=' + boundary });
+  };
 
   const token = await getAccessToken();
-  const url = existing ? `https://www.googleapis.com/upload/drive/v3/files/${existing.id}?uploadType=multipart` : 'https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart';
-  const res = await fetch(url, {
-    method: existing ? 'PATCH' : 'POST',
-    headers: { Authorization: 'Bearer ' + token },
-    body
-  });
-  if (!res.ok) {
-    const txt = await res.text().catch(()=>null);
-    throw new Error('Upload failed: ' + res.status + ' ' + txt);
+  if (existing) {
+    // Update content only: non includere parents nel metadata
+    const body = buildMultipart(metadataUpdate);
+    const url = `https://www.googleapis.com/upload/drive/v3/files/${existing.id}?uploadType=multipart`;
+    const res = await fetch(url, {
+      method: 'PATCH',
+      headers: { Authorization: 'Bearer ' + token },
+      body
+    });
+    if (!res.ok) {
+      const txt = await res.text().catch(()=>null);
+      throw new Error('Upload failed: ' + res.status + ' ' + txt);
+    }
+    return await res.json();
+  } else {
+    // Create new file in appDataFolder
+    const body = buildMultipart(metadataCreate);
+    const url = 'https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart';
+    const res = await fetch(url, {
+      method: 'POST',
+      headers: { Authorization: 'Bearer ' + token },
+      body
+    });
+    if (!res.ok) {
+      const txt = await res.text().catch(()=>null);
+      throw new Error('Upload failed: ' + res.status + ' ' + txt);
+    }
+    return await res.json();
   }
-  return await res.json();
 }
 
 async function downloadFileFromAppData(name) {
