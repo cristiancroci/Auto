@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Vault — PWA + Drive Sync (debug)</title>
+  <title>Vault — PWA + Drive Sync (GSI + debug)</title>
 
   <link rel="manifest" href="manifest.json">
   <meta name="theme-color" content="#0b2130">
@@ -26,7 +26,6 @@
     #debug-overlay .hdr{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:8px}
     #debug-overlay button{font-size:12px;padding:6px 8px;border-radius:6px}
     #debug-overlay.collapsed{max-height:36px;overflow:hidden}
-    #debug-overlay .drag-handle{cursor:move;padding:6px 8px;border-radius:6px;background:#f3f4f6;margin-right:8px}
     @media (max-width:520px){
       .card{padding:12px}
       #debug-overlay{left:8px;right:8px;bottom:8px}
@@ -68,13 +67,16 @@
     </div>
   </div>
 
-  <!-- Google API must be loaded before drive-sync.js -->
+  <!-- Google Identity Services (GSI) - required for modern auth -->
+  <script src="https://accounts.google.com/gsi/client" async defer></script>
+
+  <!-- Optional: legacy gapi (kept for discovery if needed) -->
   <script src="https://apis.google.com/js/api.js"></script>
 
   <!-- Crypto helpers (crypto.js) -->
   <script src="crypto.js"></script>
 
-  <!-- Drive sync logic (drive-sync.js) -->
+  <!-- Drive sync logic (drive-sync.js) - must implement GSI flow as provided -->
   <script src="drive-sync.js"></script>
 
   <!-- Service worker registration -->
@@ -84,81 +86,32 @@
     }
   </script>
 
-  <!-- UI glue and robust debug overlay (single, collapsible, draggable) -->
+  <!-- Robust debug overlay (single, collapsible) -->
+  <div id="debug-overlay" aria-live="polite">
+    <div class="hdr">
+      <strong>DEBUG GOOGLE</strong>
+      <div>
+        <button id="dbg-toggle">Riduci</button>
+        <button id="dbg-clear">Pulisci</button>
+        <button id="dbg-hide">Nascondi</button>
+      </div>
+    </div>
+    <div id="dbg-body"><div id="dbg-lines">Caricamento debug...</div></div>
+  </div>
+
   <script>
-    // Simple logger to page
+    // Small page logger
     const logEl = document.getElementById('log');
     function log(...args){ logEl.textContent += args.join(' ') + '\n'; logEl.scrollTop = logEl.scrollHeight; }
 
-    // Create single debug overlay (remove previous if any)
-    (function ensureSingleDebugOverlay(){
-      const existing = document.getElementById('debug-overlay');
-      if (existing) existing.remove();
-
-      const dbg = document.createElement('div');
-      dbg.id = 'debug-overlay';
-      dbg.innerHTML = `
-        <div class="hdr">
-          <div style="display:flex;align-items:center">
-            <div class="drag-handle" id="dbg-drag">☰</div>
-            <strong>DEBUG GOOGLE</strong>
-          </div>
-          <div>
-            <button id="dbg-toggle">Riduci</button>
-            <button id="dbg-clear">Pulisci</button>
-            <button id="dbg-hide">Nascondi</button>
-          </div>
-        </div>
-        <div id="dbg-body"><div id="dbg-lines">Caricamento debug...</div></div>
-      `;
-      document.body.appendChild(dbg);
-
-      const toggle = document.getElementById('dbg-toggle');
-      const clear = document.getElementById('dbg-clear');
-      const hide = document.getElementById('dbg-hide');
-      toggle.addEventListener('click', () => {
-        dbg.classList.toggle('collapsed');
-        toggle.textContent = dbg.classList.contains('collapsed') ? 'Espandi' : 'Riduci';
-      });
-      clear.addEventListener('click', () => { document.getElementById('dbg-lines').innerHTML = ''; });
-      hide.addEventListener('click', () => { dbg.style.display = 'none'; });
-
-      // draggable
-      const handle = document.getElementById('dbg-drag');
-      let isDragging = false, startX=0, startY=0, startLeft=0, startBottom=0;
-      handle.addEventListener('touchstart', startDrag, {passive:true});
-      handle.addEventListener('mousedown', startDrag);
-      function startDrag(e){
-        isDragging = true;
-        const p = (e.touches && e.touches[0]) || e;
-        startX = p.clientX; startY = p.clientY;
-        const rect = dbg.getBoundingClientRect();
-        startLeft = rect.left;
-        startBottom = window.innerHeight - rect.bottom;
-        document.addEventListener('mousemove', onDrag);
-        document.addEventListener('mouseup', endDrag);
-        document.addEventListener('touchmove', onDrag, {passive:true});
-        document.addEventListener('touchend', endDrag);
-      }
-      function onDrag(e){
-        if (!isDragging) return;
-        const p = (e.touches && e.touches[0]) || e;
-        const dx = p.clientX - startX;
-        const dy = p.clientY - startY;
-        let newLeft = Math.max(8, Math.min(window.innerWidth - dbg.offsetWidth - 8, startLeft + dx));
-        let newBottom = Math.max(8, Math.min(window.innerHeight - 36, startBottom - dy));
-        dbg.style.left = newLeft + 'px';
-        dbg.style.right = 'auto';
-        dbg.style.bottom = newBottom + 'px';
-      }
-      function endDrag(){
-        isDragging = false;
-        document.removeEventListener('mousemove', onDrag);
-        document.removeEventListener('mouseup', endDrag);
-        document.removeEventListener('touchmove', onDrag);
-        document.removeEventListener('touchend', endDrag);
-      }
-    })();
+    // Debug overlay controls
+    document.getElementById('dbg-toggle').addEventListener('click', () => {
+      const dbg = document.getElementById('debug-overlay');
+      dbg.classList.toggle('collapsed');
+      document.getElementById('dbg-toggle').textContent = dbg.classList.contains('collapsed') ? 'Espandi' : 'Riduci';
+    });
+    document.getElementById('dbg-clear').addEventListener('click', () => { document.getElementById('dbg-lines').innerHTML = ''; });
+    document.getElementById('dbg-hide').addEventListener('click', () => { document.getElementById('debug-overlay').style.display = 'none'; });
 
     function dbg(msg){
       const el = document.getElementById('dbg-lines');
@@ -166,67 +119,55 @@
       el.parentElement.scrollTop = el.parentElement.scrollHeight;
     }
 
-    // initial debug checks
+    // Initial checks
+    dbg('gsi client presente? ' + (!!window.google && !!google.accounts));
     dbg('gapi presente? ' + (!!window.gapi));
+
+    // If gapi missing, try to load (api.js included above, but keep check)
     if (!window.gapi) {
-      dbg('gapi NON presente, provo a caricare api.js...');
-      const s = document.createElement('script');
-      s.src = 'https://apis.google.com/js/api.js';
-      s.onload = () => dbg('api.js caricato, gapi ora presente? ' + (!!window.gapi));
-      s.onerror = () => dbg('ERRORE: impossibile caricare api.js');
-      document.head.appendChild(s);
+      dbg('gapi non presente (ok se non necessario)');
     } else {
-      dbg('api.js già caricato');
+      dbg('gapi caricato');
     }
 
-    // Expose a detailed init runner for tablet debugging
-    window.runGapiInit = async function(){
-      dbg('Avvio runGapiInit...');
-      if (!window.gapi) { dbg('gapi non presente, abort'); return; }
-      try {
-        gapi.load('client:auth2', async () => {
-          try {
-            dbg('Chiamo gapi.client.init (verifico GAPI_CLIENT_ID e scope)');
-            dbg('GAPI_CLIENT_ID presente? ' + (typeof GAPI_CLIENT_ID !== 'undefined'));
-            dbg('GAPI_SCOPES: ' + (typeof GAPI_SCOPES !== 'undefined' ? GAPI_SCOPES : 'MANCANTE'));
-            await gapi.client.init({ clientId: GAPI_CLIENT_ID, scope: GAPI_SCOPES });
-            dbg('gapi.client.init OK');
-            document.getElementById('st-text').textContent = 'Google pronto';
-          } catch (err) {
-            try { dbg('ERRORE init (JSON): ' + JSON.stringify(err)); } catch(e) { dbg('ERRORE init (toString): ' + (err && err.toString ? err.toString() : String(err))); }
-            if (err && err.error) dbg('err.error: ' + JSON.stringify(err.error));
-            if (err && err.details) dbg('err.details: ' + JSON.stringify(err.details));
-            document.getElementById('st-text').textContent = 'errore init';
-          }
-        });
-      } catch(e) {
-        dbg('gapi.load throw: ' + (e && e.message ? e.message : String(e)));
+    // Expose runGsiInit to capture detailed errors on tablet
+    window.runGsiInit = async function(){
+      dbg('Avvio runGsiInit...');
+      // verify GSI availability
+      if (!window.google || !google.accounts || !google.accounts.oauth2) {
+        dbg('GSI non disponibile (accounts.google.com/gsi/client non caricato o bloccato)');
+        return;
       }
-    };
+      // show presence of constants if defined
+      dbg('GAPI_CLIENT_ID presente? ' + (typeof GAPI_CLIENT_ID !== 'undefined'));
+      dbg('GAPI_SCOPES: ' + (typeof GAPI_SCOPES !== 'undefined' ? GAPI_SCOPES : 'MANCANTE'));
 
-    // Wire Connetti Google button to runGapiInit and to existing gdriveInit if present
-    document.getElementById('google-login').addEventListener('click', async () => {
-      dbg('Connetti Google premuto (azione utente)');
-      try {
-        await runGapiInit();
-      } catch(e) {
-        dbg('runGapiInit error: ' + (e && e.message ? e.message : String(e)));
-      }
+      // If drive-sync exposes an init function, call it and capture errors
       if (window.gdriveInit) {
         try {
           dbg('Chiamo gdriveInit() (drive-sync.js)');
           await gdriveInit();
           dbg('gdriveInit OK');
-          document.getElementById('st-text').textContent = 'connesso';
-        } catch(e) {
+          document.getElementById('st-text').textContent = 'Google pronto';
+        } catch (e) {
           dbg('gdriveInit failed: ' + (e && e.message ? e.message : JSON.stringify(e)));
         }
       } else {
-        dbg('gdriveInit non trovato (drive-sync.js potrebbe non essere caricato)');
+        dbg('gdriveInit non trovato');
+      }
+    };
+
+    // Wire Connetti Google button
+    document.getElementById('google-login').addEventListener('click', async () => {
+      dbg('Connetti Google premuto (azione utente)');
+      try {
+        await runGsiInit();
+      } catch (e) {
+        dbg('runGsiInit error: ' + (e && e.message ? e.message : String(e)));
       }
     });
 
-    // Basic UI handlers (use functions from drive-sync.js if available)
+    // Basic UI handlers (PIN, save/load)
     const pinInput = document.getElementById('pin-input');
     const setPinBtn = document.getElementById('set-pin');
     const syncSaveBtn = document.getElementById('sync-save');
@@ -270,7 +211,7 @@
       log('Bloccato'); dbg('Interfaccia bloccata');
     });
 
-    // Save/load buttons call drive-sync functions if present, with debug
+    // Save/load buttons call drive-sync functions if present
     syncSaveBtn.addEventListener('click', async () => {
       dbg('Salva su Drive premuto');
       if (!window.saveVaultToDrive) { dbg('saveVaultToDrive non trovato'); return; }
@@ -296,7 +237,6 @@
       } catch(e) { dbg('load error: ' + (e && e.message ? e.message : JSON.stringify(e))); }
     });
 
-    // Final instruction lines
     dbg('Interfaccia pronta. Premi "Connetti Google" per iniziare.');
     dbg('Se vedi "ERRORE init" copia qui il contenuto esatto per assistenza.');
   </script>
