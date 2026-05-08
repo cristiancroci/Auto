@@ -222,34 +222,8 @@ viewDelete.onclick = async () => {
 };
 
 /* ============================================================
-   MODIFICA / SALVATAGGIO
+   SALVATAGGIO
 ============================================================ */
-async function startEdit(id) {
-  const items = await loadItems();
-  const item = items.find(i => i.id === id);
-  if (!item) return;
-
-  editingId = id;
-
-  titleInput.value = item.title;
-  usernameInput.value = item.username;
-  passwordInput.value = item.password;
-  pinInput.value = item.pin;
-  notesInput.value = item.notes;
-
-  window.scrollTo({ top: 0, behavior: "smooth" });
-}
-
-async function deleteItem(id) {
-  if (!confirm("Eliminare questa voce?")) return;
-
-  let items = await loadItems();
-  items = items.filter(i => i.id !== id);
-
-  await saveItems(items);
-  await renderItems();
-}
-
 saveBtn.onclick = async () => {
   const title = titleInput.value.trim();
   if (!title) {
