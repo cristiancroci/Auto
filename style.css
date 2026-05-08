@@ -1,8 +1,5 @@
-/* ===========================
-   PALETTE (modificabile)
-=========================== */
 :root {
-  --bg: linear-gradient(135deg, #00c6ff, #00ff9d);              /* sfondo generale chiaro */
+  --bg: #e9eaed;              /* sfondo generale chiaro */
   --card-bg: #1c1c1e;         /* card scure */
   --card-bg-2: #2c2c2e;
   --border: #3a3a3c;
@@ -10,9 +7,9 @@
   --text: #000;
   --text-light: #f2f2f7;
 
-  --primary: #0a84ff;         /* blu iOS */
-  --danger: #ff453a;
-  --secondary: #3a3a3c;
+  --primary: linear-gradient(135deg, #7fffd4, #00ff99); /* verde chiaro cangiante */
+  --secondary: linear-gradient(135deg, #ffb347, #ffcc33); /* arancio cangiante */
+  --danger: linear-gradient(135deg, #ff6b6b, #ff0000); /* rosso cangiante */
 }
 
 /* ===========================
@@ -32,7 +29,6 @@ body {
   box-sizing: border-box;
 }
 
-/* Titolo più marcato */
 h1 {
   font-size: 2.2rem;
   font-weight: 900;
@@ -108,7 +104,7 @@ input, textarea {
 }
 
 /* ===========================
-   BOTTONI
+   BOTTONI CANGIANTI
 =========================== */
 button {
   width: 100%;
@@ -119,16 +115,25 @@ button {
   font-weight: 600;
   margin-top: 6px;
   cursor: pointer;
+  color: #fff;
+  background-size: 200% 200%;
+  transition: background-position 0.6s ease;
+}
+
+button:hover {
+  background-position: right center;
 }
 
 .btn-primary {
-  background: var(--primary);
-  color: #fff;
+  background-image: var(--primary);
 }
 
 .btn-secondary {
-  background: linear-gradient(135deg, #00c6ff, #00ff9d);
-  color: #fff;
+  background-image: var(--secondary);
+}
+
+.btn-delete {
+  background-image: var(--danger);
 }
 
 /* ===========================
@@ -160,7 +165,14 @@ button {
   font-size: 0.75rem;
   border: none;
   cursor: pointer;
+  color: #fff;
+  background-size: 200% 200%;
+  transition: background-position 0.6s ease;
 }
 
-.btn-edit { background: var(--primary); color: #fff; }
-.btn-delete { background: var(--danger); color: #fff; }
+.btn-small:hover {
+  background-position: right center;
+}
+
+.btn-edit { background-image: var(--primary); }
+.btn-delete { background-image: var(--danger); }
