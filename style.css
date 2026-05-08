@@ -31,11 +31,12 @@ h1 {
   color: #000;
 }
 
-/* DUE COLONNE */
+/* DUE COLONNE STABILI */
 .layout {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 16px;
+  align-items: start;
 }
 
 @media (max-width: 768px) {
@@ -48,7 +49,7 @@ h1 {
 .card {
   background: var(--card-bg);
   border-radius: 14px;
-  padding: 14px;
+  padding: 16px;
   color: var(--text-light);
   box-shadow: 0 4px 14px rgba(0,0,0,0.4);
 }
@@ -63,16 +64,17 @@ label {
 
 .input-wrap {
   position: relative;
-  margin-bottom: 8px;
+  margin-bottom: 10px;
 }
 
 input, textarea {
   width: 100%;
-  padding: 8px 10px;
+  padding: 10px;
   border-radius: 10px;
   border: 1px solid var(--border);
   background: var(--card-bg-2);
   color: var(--text-light);
+  font-size: 0.9rem;
 }
 
 .eye {
@@ -104,36 +106,33 @@ button:hover {
   box-shadow: 0 0 12px rgba(255,255,255,0.4);
 }
 
-/* SALVA — verde acqua */
 .btn-save {
   background-image: linear-gradient(135deg, #7fffd4, #00ff99);
   box-shadow: 0 0 10px rgba(0,255,150,0.4);
 }
 
-/* ANNULLA — bordeaux */
 .btn-cancel {
   background-image: linear-gradient(135deg, #7a003c, #b30059);
   box-shadow: 0 0 10px rgba(179,0,89,0.4);
 }
 
-/* ELIMINA — rosso */
 .btn-delete {
   background-image: linear-gradient(135deg, #ff6b6b, #ff0000);
   box-shadow: 0 0 10px rgba(255,0,0,0.4);
 }
 
-/* MODIFICA — verde */
 .btn-edit {
   background-image: linear-gradient(135deg, #7fffd4, #00ff99);
   box-shadow: 0 0 10px rgba(0,255,150,0.4);
 }
 
-/* LISTA ELEMENTI */
+/* LISTA */
 .item {
   background: var(--card-bg-2);
-  padding: 10px;
+  padding: 12px;
   border-radius: 12px;
-  margin-bottom: 8px;
+  margin-bottom: 10px;
+  cursor: pointer;
 }
 
 .item-title {
@@ -144,6 +143,7 @@ button:hover {
 .item-actions {
   display: flex;
   gap: 6px;
+  margin-top: 6px;
 }
 
 .btn-small {
@@ -161,7 +161,7 @@ button:hover {
   box-shadow: 0 0 10px rgba(255,255,255,0.4);
 }
 
-/* SELECT ORDINAMENTO — NEUTRO */
+/* SELECT ORDINAMENTO */
 .sort-select {
   background: var(--card-bg-2);
   color: var(--text-light);
@@ -193,12 +193,23 @@ button:hover {
   color: var(--text-light);
 }
 
-.overlay-card h2 {
-  margin-top: 0;
-  margin-bottom: 10px;
+/* POPUP VISUALIZZA */
+#viewOverlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.65);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  z-index: 998;
 }
 
-.overlay-card input {
-  margin-top: 10px;
-  margin-bottom: 10px;
+.view-card {
+  background: var(--card-bg);
+  padding: 20px;
+  border-radius: 16px;
+  width: 90%;
+  max-width: 380px;
+  box-shadow: 0 8px 30px rgba(0,0,0,0.6);
+  color: var(--text-light);
 }
