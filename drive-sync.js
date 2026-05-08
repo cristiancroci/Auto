@@ -1,5 +1,4 @@
-// drive-sync.js (GSI + Drive REST, appDataFolder)
-// Client ID inserito come richiesto
+// drive-sync.js production version
 const GAPI_CLIENT_ID = '776375898567-ee2jfmfd9cte7dp6fj02k5ubpvag4e29.apps.googleusercontent.com';
 const GAPI_SCOPES = 'https://www.googleapis.com/auth/drive.appdata';
 
@@ -10,8 +9,7 @@ let tokenExpiry = 0;
 function initTokenClient() {
   if (tokenClient) return;
   if (!window.google || !google.accounts || !google.accounts.oauth2) {
-    console.warn('GSI client non disponibile');
-    return;
+    throw new Error('GSI client non disponibile');
   }
   tokenClient = google.accounts.oauth2.initTokenClient({
     client_id: GAPI_CLIENT_ID,
@@ -20,9 +18,8 @@ function initTokenClient() {
       if (resp && resp.access_token) {
         currentAccessToken = resp.access_token;
         tokenExpiry = Date.now() + (resp.expires_in ? resp.expires_in * 1000 : 55 * 60 * 1000);
-        console.log('Token ottenuto, expires_in:', resp.expires_in);
       } else {
-        console.warn('Token client callback senza access_token', resp);
+        currentAccessToken = null;
       }
     }
   });
@@ -31,7 +28,6 @@ function initTokenClient() {
 async function requestAccessTokenInteractive() {
   initTokenClient();
   return new Promise((resolve, reject) => {
-    if (!tokenClient) return reject(new Error('Token client non inizializzato'));
     tokenClient.requestAccessToken({ prompt: 'consent' });
     const start = Date.now();
     const t = setInterval(() => {
@@ -44,7 +40,6 @@ async function requestAccessTokenInteractive() {
 async function requestAccessTokenSilent() {
   initTokenClient();
   return new Promise((resolve, reject) => {
-    if (!tokenClient) return reject(new Error('Token client non inizializzato'));
     tokenClient.requestAccessToken({ prompt: '' });
     const start = Date.now();
     const t = setInterval(() => {
@@ -87,41 +82,32 @@ async function findFileByName(name) {
 
 async function uploadFileToAppData(name, content, mime='application/octet-stream') {
   const existing = await findFileByName(name);
-
-  // Build multipart for create
-  const boundary = '-------vault' + Math.random().toString(36).slice(2);
-  const buildMultipart = (metadata) => {
-    const parts = [];
-    parts.push(`--${boundary}\r\nContent-Type: application/json; charset=UTF-8\r\n\r\n${JSON.stringify(metadata)}\r\n`);
-    parts.push(`--${boundary}\r\nContent-Type: ${mime}\r\n\r\n`);
-    parts.push(content + '\r\n');
-    parts.push(`--${boundary}--`);
-    return new Blob(parts, { type: 'multipart/related; boundary=' + boundary });
-  };
-
   const token = await getAccessToken();
 
   if (existing) {
-    // Update only content using uploadType=media (PATCH)
+    // Update content only using uploadType=media
     const url = `https://www.googleapis.com/upload/drive/v3/files/${existing.id}?uploadType=media`;
     const res = await fetch(url, {
       method: 'PATCH',
-      headers: {
-        Authorization: 'Bearer ' + token,
-        'Content-Type': mime
-      },
+      headers: { Authorization: 'Bearer ' + token, 'Content-Type': mime },
       body: content
     });
     if (!res.ok) {
       const txt = await res.text().catch(()=>null);
       throw new Error('Upload failed: ' + res.status + ' ' + txt);
     }
-    // Some responses to media uploads return empty body; return existing metadata if needed
     try { return await res.json(); } catch(e) { return { id: existing.id }; }
   } else {
-    // Create new file in appDataFolder with multipart (POST)
+    // Create new file in appDataFolder with multipart
+    const boundary = '-------vault' + Math.random().toString(36).slice(2);
     const metadata = { name, parents: ['appDataFolder'] };
-    const body = buildMultipart(metadata);
+    const parts = [];
+    parts.push(`--${boundary}\r\nContent-Type: application/json; charset=UTF-8\r\n\r\n${JSON.stringify(metadata)}\r\n`);
+    parts.push(`--${boundary}\r\nContent-Type: ${mime}\r\n\r\n`);
+    parts.push(content + '\r\n');
+    parts.push(`--${boundary}--`);
+    const body = new Blob(parts, { type: 'multipart/related; boundary=' + boundary });
+
     const url = 'https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart';
     const res = await fetch(url, {
       method: 'POST',
@@ -143,31 +129,22 @@ async function downloadFileFromAppData(name) {
   return await res.text();
 }
 
-// Public helpers
+// Public API used by index.html
 window.gdriveInit = async function(){
   initTokenClient();
-  try {
-    await requestAccessTokenSilent();
-    console.log('gdriveInit: token ottenuto silent');
-    return;
-  } catch (e) {
-    console.log('gdriveInit: nessun token silent, attendere azione utente per login');
-    return;
-  }
+  try { await requestAccessTokenSilent(); return; } catch (e) { return; }
 };
 
 window.ensureKeyLoaded = async function(){
-  try {
-    const key = localStorage.getItem('vault_key_b64');
-    if (key) return key;
-    await ensureSignedInInteractive();
-    const remote = await downloadFileFromAppData('vault_key.json');
-    if (remote) { localStorage.setItem('vault_key_b64', remote); return remote; }
-    const newKey = await generateAesKeyB64();
-    await uploadFileToAppData('vault_key.json', newKey, 'application/json');
-    localStorage.setItem('vault_key_b64', newKey);
-    return newKey;
-  } catch (e) { throw e; }
+  const key = localStorage.getItem('vault_key_b64');
+  if (key) return key;
+  await ensureSignedInInteractive();
+  const remote = await downloadFileFromAppData('vault_key.json');
+  if (remote) { localStorage.setItem('vault_key_b64', remote); return remote; }
+  const newKey = await generateAesKeyB64();
+  await uploadFileToAppData('vault_key.json', newKey, 'application/json');
+  localStorage.setItem('vault_key_b64', newKey);
+  return newKey;
 };
 
 window.saveKeyToDrive = async function(keyB64){
