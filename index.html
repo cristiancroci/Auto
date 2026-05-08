@@ -1,246 +1,124 @@
 <!doctype html>
 <html lang="it">
 <head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>Vault Preview — PWA + Drive Sync</title>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Vault Preview — PWA + Drive Sync</title>
 
-  
-<!-- React UMD -->
-<script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
-<script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+  <!-- React UMD -->
+  <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
+  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
 
-<!-- Manifest + theme -->
-<link rel="manifest" href="/manifest.json">
-<meta name="theme-color" content="#00d4ff">
-<link rel="apple-touch-icon" href="/icons/icon-192.png">
+  <!-- Manifest + theme (relative paths for project page) -->
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#00d4ff">
+  <link rel="apple-touch-icon" href="icons/icon-192.png">
 
-<style>
-  :root{
-    --bg-ice-start:#f7fbfd; --bg-ice-end:#eef6fb;
-    --card-dark-1:#0b0f14; --card-dark-2:#0f1419;
-    --muted:#9b8f7a; --text-light:#f0f6fb;
-    --accent-a:#00d4ff; --accent-b:#7b61ff;
-    --glass:rgba(11,33,48,0.04);
-  }
-  @keyframes accentShift {
-    0% { --accent-a: #00d4ff; --accent-b: #7b61ff; }
-    33% { --accent-a: #7be0ff; --accent-b: #9b6bff; }
-    66% { --accent-a: #a0f0ff; --accent-b: #c07bff; }
-    100% { --accent-a: #00d4ff; --accent-b: #7b61ff; }
-  }
-  html,body{height:100%;margin:0;background:linear-gradient(180deg,var(--bg-ice-start),var(--bg-ice-end));color:#0b2130;font-family:Inter,system-ui,-apple-system,"Segoe UI",Roboto,Arial}
-  .app-root{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:28px;box-sizing:border-box}
-  .container{width:100%;max-width:520px;background:linear-gradient(180deg,rgba(255,255,255,0.95),rgba(250,252,255,0.98));border-radius:16px;padding:18px;box-shadow:0 20px 60px rgba(2,6,23,0.12);border:1px solid rgba(11,33,48,0.04);box-sizing:border-box}
-  .header{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:12px}
-  .brand{display:flex;gap:12px;align-items:center}
-  .logo{width:44px;height:44;border-radius:10px;display:flex;align-items:center;justify-content:center;color:#021025;font-weight:800;background:linear-gradient(135deg,var(--accent-a),var(--accent-b));animation:accentShift 6s linear infinite}
-  .muted{color:#6b7b8a;font-size:13px}
+  <style>
+    :root{
+      --bg-ice-start:#f7fbfd; --bg-ice-end:#eef6fb;
+      --card-dark-1:#0b0f14; --card-dark-2:#0f1419;
+      --muted:#9b8f7a; --text-light:#f0f6fb;
+      --accent-a:#00d4ff; --accent-b:#7b61ff;
+      --glass:rgba(11,33,48,0.04);
+    }
+    @keyframes accentShift {
+      0% { --accent-a: #00d4ff; --accent-b: #7b61ff; }
+      33% { --accent-a: #7be0ff; --accent-b: #9b6bff; }
+      66% { --accent-a: #a0f0ff; --accent-b: #c07bff; }
+      100% { --accent-a: #00d4ff; --accent-b: #7b61ff; }
+    }
+    html,body{height:100%;margin:0;background:linear-gradient(180deg,var(--bg-ice-start),var(--bg-ice-end));color:#0b2130;font-family:Inter,system-ui,-apple-system,"Segoe UI",Roboto,Arial}
+    .app-root{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:28px;box-sizing:border-box}
+    .container{width:100%;max-width:520px;background:linear-gradient(180deg,rgba(255,255,255,0.95),rgba(250,252,255,0.98));border-radius:16px;padding:18px;box-shadow:0 20px 60px rgba(2,6,23,0.12);border:1px solid rgba(11,33,48,0.04);box-sizing:border-box}
+    .header{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:12px}
+    .brand{display:flex;gap:12px;align-items:center}
+    .logo{width:44px;height:44;border-radius:10px;display:flex;align-items:center;justify-content:center;color:#021025;font-weight:800;background:linear-gradient(135deg,var(--accent-a),var(--accent-b));animation:accentShift 6s linear infinite}
+    .muted{color:#6b7b8a;font-size:13px}
 
-  .controls{display:flex;gap:8px;align-items:center;margin-bottom:12px;flex-wrap:nowrap}
-  .search-input{flex:1 1 auto;min-width:0;height:44px;padding:10px 12px;border-radius:10px;border:1px solid var(--glass);background:transparent;color:#0b2130;box-sizing:border-box}
-  .select{flex:0 0 160px;min-width:120px;height:44px;padding:10px 12px;border-radius:10px;border:1px solid var(--glass);background:transparent;color:#0b2130;box-sizing:border-box;appearance:none;padding-right:36px;background-image: linear-gradient(45deg, transparent 50%, rgba(0,0,0,0.12) 50%), linear-gradient(135deg, rgba(0,0,0,0.12) 50%, transparent 50%);background-position: calc(100% - 18px) calc(50% - 6px), calc(100% - 12px) calc(50% - 6px);background-size: 6px 6px, 6px 6px;background-repeat: no-repeat}
-  .btn.primary{flex:0 0 auto;height:44px;padding:0 14px;display:inline-flex;align-items:center;justify-content:center;color:#021025;background:linear-gradient(90deg,var(--accent-a),var(--accent-b));animation:accentShift 6s linear infinite;border:none;border-radius:10px;font-weight:700;cursor:pointer}
-  .btn.small{font-size:13px;padding:8px 10px;border-radius:8px;border:1px solid rgba(0,0,0,0.04);background:transparent}
+    .controls{display:flex;gap:8px;align-items:center;margin-bottom:12px;flex-wrap:nowrap}
+    .search-input{flex:1 1 auto;min-width:0;height:44px;padding:10px 12px;border-radius:10px;border:1px solid var(--glass);background:transparent;color:#0b2130;box-sizing:border-box}
+    .select{flex:0 0 160px;min-width:120px;height:44px;padding:10px 12px;border-radius:10px;border:1px solid var(--glass);background:transparent;color:#0b2130;box-sizing:border-box;appearance:none;padding-right:36px;background-image: linear-gradient(45deg, transparent 50%, rgba(0,0,0,0.12) 50%), linear-gradient(135deg, rgba(0,0,0,0.12) 50%, transparent 50%);background-position: calc(100% - 18px) calc(50% - 6px), calc(100% - 12px) calc(50% - 6px);background-size: 6px 6px, 6px 6px;background-repeat: no-repeat}
+    .btn.primary{flex:0 0 auto;height:44px;padding:0 14px;display:inline-flex;align-items:center;justify-content:center;color:#021025;background:linear-gradient(90deg,var(--accent-a),var(--accent-b));animation:accentShift 6s linear infinite;border:none;border-radius:10px;font-weight:700;cursor:pointer}
+    .btn.small{font-size:13px;padding:8px 10px;border-radius:8px;border:1px solid rgba(0,0,0,0.04);background:transparent}
 
-  .card{width:100%;background:linear-gradient(180deg,var(--card-dark-1),var(--card-dark-2));border-radius:12px;padding:14px;border:1px solid rgba(255,255,255,0.03);box-shadow:0 10px 30px rgba(2,6,23,0.35);color:var(--text-light);margin-bottom:12px;box-sizing:border-box}
-  .title{font-weight:700}
-  .meta{color:rgba(255,255,255,0.65);font-size:13px;margin-top:6px}
-  .row{display:flex;gap:8px;align-items:center;margin-top:12px}
-  .field{flex:1;padding:10px;border-radius:8px;background:linear-gradient(180deg,rgba(255,255,255,0.02),transparent);font-family:ui-monospace,Menlo,monospace;color:var(--text-light)}
-  .icon-btn{background:transparent;border:none;padding:8px;border-radius:8px;cursor:pointer;color:rgba(255,255,255,0.7);display:inline-flex;align-items:center;gap:6px}
-  .actions{display:flex;gap:8px;justify-content:flex-end;margin-top:12px}
+    .card{width:100%;background:linear-gradient(180deg,var(--card-dark-1),var(--card-dark-2));border-radius:12px;padding:14px;border:1px solid rgba(255,255,255,0.03);box-shadow:0 10px 30px rgba(2,6,23,0.35);color:var(--text-light);margin-bottom:12px;box-sizing:border-box}
+    .title{font-weight:700}
+    .meta{color:rgba(255,255,255,0.65);font-size:13px;margin-top:6px}
+    .row{display:flex;gap:8px;align-items:center;margin-top:12px}
+    .field{flex:1;padding:10px;border-radius:8px;background:linear-gradient(180deg,rgba(255,255,255,0.02),transparent);font-family:ui-monospace,Menlo,monospace;color:var(--text-light)}
+    .icon-btn{background:transparent;border:none;padding:8px;border-radius:8px;cursor:pointer;color:rgba(255,255,255,0.7);display:inline-flex;align-items:center;gap:6px}
+    .actions{display:flex;gap:8px;justify-content:flex-end;margin-top:12px}
 
-  .modal-backdrop{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(2,6,23,0.45);z-index:1000}
-  .modal-card{width:92%;max-width:520px;padding:20px;border-radius:14px;background:linear-gradient(180deg,#0b0c0f,#0f1113);border:1px solid rgba(255,255,255,0.02);box-shadow:0 20px 60px rgba(0,0,0,0.6)}
-  .auth-input{width:100%;padding:12px;border-radius:8px;border:1px solid rgba(255,255,255,0.03);background:rgba(255,255,255,0.02);color:var(--text-light)}
-  .toast{position:fixed;right:18px;bottom:18px;background:#021018;color:#eaf6ff;padding:10px 14px;border-radius:10px;border:1px solid rgba(255,255,255,0.03)}
-  @media(max-width:720px){ .container{padding:14px;margin:8px} .logo{width:40px;height:40} .search-input, .select, .btn.primary { height:40px; font-size:13px; } }
-</style>
+    .modal-backdrop{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(2,6,23,0.45);z-index:1000}
+    .modal-card{width:92%;max-width:520px;padding:20px;border-radius:14px;background:linear-gradient(180deg,#0b0c0f,#0f1113);border:1px solid rgba(255,255,255,0.02);box-shadow:0 20px 60px rgba(0,0,0,0.6)}
+    .auth-input{width:100%;padding:12px;border-radius:8px;border:1px solid rgba(255,255,255,0.03);background:rgba(255,255,255,0.02);color:var(--text-light)}
+    .toast{position:fixed;right:18px;bottom:18px;background:#021018;color:#eaf6ff;padding:10px 14px;border-radius:10px;border:1px solid rgba(255,255,255,0.03)}
+    @media(max-width:720px){ .container{padding:14px;margin:8px} .logo{width:40px;height:40} .search-input, .select, .btn.primary { height:40px; font-size:13px; } }
+  </style>
 </head>
 <body>
-<div id="root"></div>
+  <div class="app-root">
+    <div class="container" role="main" aria-labelledby="app-title">
+      <div class="header">
+        <div class="brand">
+          <div class="logo">V</div>
+          <div>
+            <div id="app-title" style="font-weight:800">Vault Preview</div>
+            <div class="muted">PWA + Drive Sync</div>
+          </div>
+        </div>
+        <div class="muted">Offline ready</div>
+      </div>
 
-<script>
-/* ---------- App code (React UMD) ---------- */
-const { useState, useEffect, useRef, useCallback } = React;
+      <div id="root">
+        <!-- React will mount here -->
+        <div style="text-align:center;padding:40px 12px;color:#6b7b8a">
+          Caricamento...
+        </div>
+      </div>
+    </div>
+  </div>
 
-/* Crypto helpers */
-const enc = new TextEncoder(), dec = new TextDecoder();
-const PBKDF2_ITERATIONS = 200000;
-async function deriveKeyRaw(password, salt) {
-  const base = await crypto.subtle.importKey('raw', enc.encode(password), 'PBKDF2', false, ['deriveKey']);
-  return crypto.subtle.deriveKey({ name:'PBKDF2', salt, iterations: PBKDF2_ITERATIONS, hash:'SHA-256' }, base, { name:'AES-GCM', length:256 }, false, ['encrypt','decrypt']);
-}
-function bufToB64(buf){ return btoa(String.fromCharCode(...new Uint8Array(buf))); }
-function b64ToBuf(b64){ return Uint8Array.from(atob(b64), c=>c.charCodeAt(0)); }
-async function encryptVault(data, password){
-  const salt = crypto.getRandomValues(new Uint8Array(16));
-  const iv = crypto.getRandomValues(new Uint8Array(12));
-  const key = await deriveKeyRaw(password, salt);
-  const ct = await crypto.subtle.encrypt({ name:'AES-GCM', iv }, key, enc.encode(JSON.stringify(data)));
-  const blob = new Uint8Array([...salt, ...iv, ...new Uint8Array(ct)]);
-  return bufToB64(blob);
-}
-async function decryptVault(b64, password){
-  const buf = b64ToBuf(b64);
-  const salt = buf.slice(0,16);
-  const iv = buf.slice(16,28);
-  const ct = buf.slice(28);
-  const key = await deriveKeyRaw(password, salt);
-  const plain = await crypto.subtle.decrypt({ name:'AES-GCM', iv }, key, ct);
-  return JSON.parse(dec.decode(plain));
-}
-async function hashPassword(pw){
-  const h = await crypto.subtle.digest('SHA-256', enc.encode(pw + 'vault_salt_2025'));
-  return btoa(String.fromCharCode(...new Uint8Array(h)));
-}
+  <script>
+    /* ---------- App code (React UMD) - minimal mount to avoid blank page ---------- */
+    const { useState, useEffect } = React;
 
-/* Small Icon */
-function Icon({ name, size=18 }){
-  const paths = {
-    shield: '<path d="M12 2 4 5v6c0 7 8 11 8 11s8-4 8-11V5z"/>',
-    eye: '<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>',
-    eyeOff: '<path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8"/><line x1="1" y1="1" x2="23" y2="23"/>',
-    copy: '<rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>',
-    edit: '<path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>',
-    trash: '<polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/>',
-    star: '<polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>',
-  };
-  return React.createElement('svg', { width:size, height:size, viewBox:'0 0 24 24', fill:'none', dangerouslySetInnerHTML:{__html: paths[name] || ''}, stroke:'currentColor', strokeWidth:1.6, strokeLinecap:'round', strokeLinejoin:'round' });
-}
+    function App() {
+      const [ready, setReady] = useState(false);
+      useEffect(() => {
+        // small delay to simulate boot and avoid blank if JS errors occur later
+        setTimeout(() => setReady(true), 80);
+      }, []);
 
-/* App */
-function App(){
-  const VAULT_KEY = 'il_mio_vault_v1';
-  const HASH_KEY = 'il_mio_vault_hash_v1';
+      if (!ready) {
+        return React.createElement('div', { style: { textAlign: 'center', padding: '40px 12px', color: '#6b7b8a' } }, 'Caricamento...');
+      }
 
-  const [phase, setPhase] = useState('loading');
-  const [masterPw, setMasterPw] = useState('');
-  const [confirmPw, setConfirmPw] = useState('');
-  const [pwError, setPwError] = useState('');
-  const [showMasterPw, setShowMasterPw] = useState(false);
-  const [entries, setEntries] = useState([]);
-  const [modalState, setModalState] = useState(null);
-  const [formData, setFormData] = useState({});
-  const [copied, setCopied] = useState(null);
-  const [toast, setToast] = useState(null);
-  const [deleteConfirm, setDeleteConfirm] = useState(null);
-  const [search, setSearch] = useState('');
-  const [sortBy, setSortBy] = useState('updatedAt');
-  const masterRef = useRef(null);
-  const lockTimer = useRef(null);
-  const AUTO_LOCK_MS = 5 * 60 * 1000;
-
-  useEffect(()=> {
-    const hash = localStorage.getItem(HASH_KEY);
-    setPhase(hash ? 'login' : 'setup');
-  }, []);
-
-  const resetLockTimer = useCallback(()=>{
-    if(lockTimer.current) clearTimeout(lockTimer.current);
-    lockTimer.current = setTimeout(()=> {
-      handleLock();
-      showToast('⏱ Vault bloccato automaticamente', 'warn');
-    }, AUTO_LOCK_MS);
-  }, []);
-
-  const showToast = (msg, type='ok') => {
-    setToast({msg,type});
-    setTimeout(()=> setToast(null), 2200);
-  };
-
-  const saveVault = async (data, pw) => {
-    const encrypted = await encryptVault(data, pw);
-    localStorage.setItem(VAULT_KEY, encrypted);
-  };
-
-  const handleSetup = async () => {
-    if(masterPw.length < 8){ setPwError('Minimo 8 caratteri'); return; }
-    if(masterPw !== confirmPw){ setPwError('Le password non coincidono'); return; }
-    const hash = await hashPassword(masterPw);
-    localStorage.setItem(HASH_KEY, hash);
-    await saveVault([], masterPw);
-    masterRef.current = masterPw;
-    setMasterPw('');
-    setConfirmPw('');
-    setPhase('unlocked');
-    setEntries([]);
-    resetLockTimer();
-    showToast('✅ Vault creato');
-  };
-
-  const handleLogin = async () => {
-    const hash = await hashPassword(masterPw);
-    if(hash !== localStorage.getItem(HASH_KEY)){ setPwError('Password master errata'); return; }
-    try{
-      const encrypted = localStorage.getItem(VAULT_KEY);
-      const data = encrypted ? await decryptVault(encrypted, masterPw) : [];
-      setEntries(data || []);
-      masterRef.current = masterPw;
-      setMasterPw('');
-      setPhase('unlocked');
-      resetLockTimer();
-      setPwError('');
-      showToast('🔓 Vault sbloccato');
-    } catch(e){
-      setPwError('Errore decifratura vault');
+      return React.createElement('div', null,
+        React.createElement('div', { className: 'card' },
+          React.createElement('div', { className: 'title' }, 'Vault'),
+          React.createElement('div', { className: 'meta' }, 'Connesso a Drive: non ancora autenticato')
+        ),
+        React.createElement('div', { style: { textAlign: 'center', marginTop: 12 } },
+          React.createElement('button', { className: 'btn primary', onClick: () => alert('Apri autenticazione') }, 'Connetti Drive')
+        )
+      );
     }
-  };
 
-  const handleLock = () => {
-    setPhase('login');
-    masterRef.current = null;
-    setEntries([]);
-    setModalState(null);
-    setMasterPw('');
-    if(lockTimer.current) clearTimeout(lockTimer.current);
-  };
+    ReactDOM.createRoot(document.getElementById('root')).render(React.createElement(App));
+  </script>
 
-  const persistEntries = async (newEntries) => {
-    setEntries(newEntries);
-    const pw = masterRef.current;
-    if(pw) await saveVault(newEntries, pw);
-    else showToast('⚠ Impossibile salvare: sessione non valida', 'warn');
-  };
+  <!-- Include drive-sync.js (client-side Google API logic) if present in build -->
+  <script src="drive-sync.js"></script>
 
-  const handleSave = async () => {
-    if(!formData.title || !formData.title.trim()){ showToast('⚠ Titolo obbligatorio','warn'); return; }
-    let newEntries;
-    if(modalState?.mode === 'add'){
-      const entry = { ...formData, id: crypto.randomUUID(), createdAt: Date.now(), updatedAt: Date.now() };
-      newEntries = [entry, ...entries];
-      showToast('✅ Voce aggiunta!');
-    } else {
-      newEntries = entries.map(e => e.id === formData.id ? { ...formData, updatedAt: Date.now() } : e);
-      showToast('✅ Voce aggiornata!');
+  <!-- Service worker registration (relative path for project page) -->
+  <script>
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('service-worker.js')
+        .then(r => console.log('SW registrato', r.scope))
+        .catch(e => console.warn('SW failed', e));
     }
-    await persistEntries(newEntries);
-    setModalState(null);
-    resetLockTimer();
-  };
-
-  const handleDelete = async (id) => {
-    const newEntries = entries.filter(e => e.id !== id);
-    await persistEntries(newEntries);
-    setDeleteConfirm(null);
-    setModalState(null);
-    showToast('🗑 Voce eliminata');
-    resetLockTimer();
-  };
-
-  const copyToClipboard = async (text, label) => {
-    if(!text){ showToast(`Nessun ${label}`,'warn'); return; }
-    try{
-      await navigator.clipboard.writeText(text);
-      setCopied(label);
-      showToast(`📋 ${label} copiato!`);
-      setTimeout(async ()=> { try{ await navigator.clipboard.writeText(''); }catch{} setCopied(null); }, 8000);
-      resetLockTimer();
-    } catch(e){ showToast('Errore copia appunti','err'); }
-  };
-
-  const filtered = entries.filter(e => {
-    if(!search.trim()) return true;
-    const q = search.toLowerCase();
-    return Object.values(e).some(v => (''+ (v||'')).toLowerCase().includes
+  </script>
+</body>
+</html>
