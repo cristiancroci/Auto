@@ -3,9 +3,10 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Vault — PWA + Drive Sync (GSI + debug)</title>
+  <title>Vault — Drive Sync</title>
   <link rel="manifest" href="manifest.json">
   <meta name="theme-color" content="#0b2130">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self' https://accounts.google.com https://www.googleapis.com; script-src 'self' https://accounts.google.com https://apis.google.com; connect-src 'self' https://www.googleapis.com; style-src 'self' 'unsafe-inline'">
   <style>
     :root{--bg:#eef6fb;--card:#fff;--muted:#6b7b8a;--accent1:#00d4ff;--accent2:#7b61ff}
     html,body{height:100%;margin:0;font-family:system-ui,Segoe UI,Roboto,Arial;background:var(--bg)}
@@ -19,11 +20,6 @@
     .btn{background:linear-gradient(90deg,var(--accent1),var(--accent2));color:#021025;border:none;font-weight:700;cursor:pointer}
     .controls{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
     #log{background:#f6f8fa;padding:8px;border-radius:8px;overflow:auto;height:120px}
-    #debug-overlay{position:fixed;left:12px;right:12px;bottom:12px;z-index:99999;background:#fff;border:1px solid #ccc;padding:10px;border-radius:10px;font-family:monospace;font-size:13px;max-height:40vh;overflow:auto;box-shadow:0 8px 24px rgba(0,0,0,0.12)}
-    #debug-overlay .hdr{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:8px}
-    #debug-overlay button{font-size:12px;padding:6px 8px;border-radius:6px}
-    #debug-overlay.collapsed{max-height:36px;overflow:hidden}
-    @media (max-width:520px){ .card{padding:12px} #debug-overlay{left:8px;right:8px;bottom:8px} }
   </style>
 </head>
 <body>
@@ -50,7 +46,7 @@
       </div>
 
       <div style="margin-top:12px">
-        <label>Vault (JSON)</label>
+        <label>Vault JSON</label>
         <textarea id="vault-area" style="width:100%;height:160px;padding:10px;border-radius:8px;border:1px solid #ddd"></textarea>
       </div>
 
@@ -61,16 +57,13 @@
     </div>
   </div>
 
-  <!-- Google Identity Services (GSI) - required for modern auth -->
+  <!-- Google Identity Services -->
   <script src="https://accounts.google.com/gsi/client" async defer></script>
 
-  <!-- Optional legacy gapi (not used for auth but kept if needed) -->
-  <script src="https://apis.google.com/js/api.js"></script>
-
-  <!-- Crypto helpers (crypto.js) -->
+  <!-- Crypto helpers -->
   <script src="crypto.js"></script>
 
-  <!-- Drive sync logic (drive-sync.js) -->
+  <!-- Drive sync logic -->
   <script src="drive-sync.js"></script>
 
   <!-- Service worker registration -->
@@ -80,126 +73,64 @@
     }
   </script>
 
-  <!-- Debug overlay -->
-  <div id="debug-overlay" aria-live="polite">
-    <div class="hdr">
-      <strong>DEBUG GOOGLE</strong>
-      <div>
-        <button id="dbg-toggle">Riduci</button>
-        <button id="dbg-clear">Pulisci</button>
-        <button id="dbg-hide">Nascondi</button>
-      </div>
-    </div>
-    <div id="dbg-body"><div id="dbg-lines">Caricamento debug...</div></div>
-  </div>
-
   <script>
     const logEl = document.getElementById('log');
     function log(...args){ logEl.textContent += args.join(' ') + '\n'; logEl.scrollTop = logEl.scrollHeight; }
-    document.getElementById('dbg-toggle').addEventListener('click', () => {
-      const dbg = document.getElementById('debug-overlay');
-      dbg.classList.toggle('collapsed');
-      document.getElementById('dbg-toggle').textContent = dbg.classList.contains('collapsed') ? 'Espandi' : 'Riduci';
-    });
-    document.getElementById('dbg-clear').addEventListener('click', () => { document.getElementById('dbg-lines').innerHTML = ''; });
-    document.getElementById('dbg-hide').addEventListener('click', () => { document.getElementById('debug-overlay').style.display = 'none'; });
-
-    function dbg(msg){
-      const el = document.getElementById('dbg-lines');
-      el.innerHTML += msg + '<br>';
-      el.parentElement.scrollTop = el.parentElement.scrollHeight;
-    }
-
-    dbg('gsi client presente? ' + (!!window.google && !!google.accounts));
-    dbg('gapi presente? ' + (!!window.gapi));
-    dbg('Interfaccia pronta. Premi "Connetti Google" per iniziare.');
-
-    // Expose runGsiInit for tablet debugging
-    window.runGsiInit = async function(){
-      dbg('Avvio runGsiInit...');
-      if (!window.google || !google.accounts || !google.accounts.oauth2) {
-        dbg('GSI non disponibile (accounts.google.com/gsi/client non caricato o bloccato)');
-        return;
-      }
-      dbg('GAPI_CLIENT_ID presente? ' + (typeof GAPI_CLIENT_ID !== 'undefined'));
-      dbg('GAPI_SCOPES: ' + (typeof GAPI_SCOPES !== 'undefined' ? GAPI_SCOPES : 'MANCANTE'));
-      if (window.gdriveInit) {
-        try {
-          dbg('Chiamo gdriveInit() (drive-sync.js)');
-          await gdriveInit();
-          dbg('gdriveInit OK');
-          document.getElementById('st-text').textContent = 'Google pronto';
-        } catch (e) {
-          dbg('gdriveInit failed: ' + (e && e.message ? e.message : JSON.stringify(e)));
-        }
-      } else {
-        dbg('gdriveInit non trovato');
-      }
-    };
 
     document.getElementById('google-login').addEventListener('click', async () => {
-      dbg('Connetti Google premuto (azione utente)');
-      try { await runGsiInit(); } catch (e) { dbg('runGsiInit error: ' + (e && e.message ? e.message : String(e))); }
-    });
-
-    // Basic UI handlers
-    const pinInput = document.getElementById('pin-input');
-    const setPinBtn = document.getElementById('set-pin');
-    const syncSaveBtn = document.getElementById('sync-save');
-    const syncLoadBtn = document.getElementById('sync-load');
-    const vaultArea = document.getElementById('vault-area');
-    const lockBtn = document.getElementById('lock');
-
-    setPinBtn.addEventListener('click', async () => {
-      const pin = pinInput.value.trim();
-      if (!/^\d{4,8}$/.test(pin)) { log('PIN non valido'); dbg('PIN non valido'); return; }
-      const salt = crypto.getRandomValues(new Uint8Array(12));
-      const hash = await derivePinHashLocal(pin, salt).catch(e => { dbg('derivePinHashLocal error: ' + e.message); return null; });
-      if (!hash) return;
-      localStorage.setItem('vault_pin_salt', btoa(String.fromCharCode(...salt)));
-      localStorage.setItem('vault_pin_hash', hash);
-      log('PIN impostato'); dbg('PIN impostato localmente'); pinInput.value = '';
-    });
-
-    pinInput.addEventListener('keydown', async (e) => {
-      if (e.key === 'Enter') {
-        const pin = pinInput.value.trim();
-        const saltB64 = localStorage.getItem('vault_pin_salt');
-        const stored = localStorage.getItem('vault_pin_hash');
-        if (!saltB64 || !stored) { dbg('Nessun PIN impostato'); return; }
-        const salt = Uint8Array.from(atob(saltB64), c=>c.charCodeAt(0));
-        const hash = await derivePinHashLocal(pin, salt).catch(e => { dbg('derivePinHashLocal error: ' + e.message); return null; });
-        if (hash === stored) { log('Sbloccato'); dbg('Sbloccato con PIN'); document.getElementById('st-text').textContent = 'sbloccato'; }
-        else { log('PIN errato'); dbg('PIN errato'); }
-        pinInput.value = '';
+      try {
+        await window.gdriveInit();
+        document.getElementById('st-text').textContent = 'Google pronto';
+        log('Google pronto');
+      } catch (e) {
+        document.getElementById('st-text').textContent = 'errore connessione';
+        log('Errore connessione: ' + (e && e.message ? e.message : JSON.stringify(e)));
       }
     });
 
-    lockBtn.addEventListener('click', () => { document.getElementById('st-text').textContent = 'bloccato'; log('Bloccato'); dbg('Interfaccia bloccata'); });
-
-    syncSaveBtn.addEventListener('click', async () => {
-      dbg('Salva su Drive premuto');
-      if (!window.saveVaultToDrive) { dbg('saveVaultToDrive non trovato'); return; }
+    document.getElementById('set-pin').addEventListener('click', async () => {
+      const pin = document.getElementById('pin-input').value.trim();
+      if (!/^\d{4,8}$/.test(pin)) { log('PIN non valido'); return; }
       try {
-        const key = await ensureKeyLoaded().catch(e => { dbg('ensureKeyLoaded error: ' + e.message); throw e; });
-        const plain = vaultArea.value || '{}';
-        const enc = await encryptWithKeyB64(key, plain);
-        await saveVaultToDrive(enc);
-        dbg('Vault salvato su Drive');
-      } catch(e) { dbg('save error: ' + (e && e.message ? e.message : JSON.stringify(e))); }
+        const salt = crypto.getRandomValues(new Uint8Array(12));
+        const hash = await derivePinHashLocal(pin, salt);
+        localStorage.setItem('vault_pin_salt', btoa(String.fromCharCode(...salt)));
+        localStorage.setItem('vault_pin_hash', hash);
+        log('PIN impostato');
+        document.getElementById('pin-input').value = '';
+      } catch (e) {
+        log('Errore impostazione PIN: ' + e.message);
+      }
     });
 
-    syncLoadBtn.addEventListener('click', async () => {
-      dbg('Carica da Drive premuto');
-      if (!window.loadVaultFromDrive) { dbg('loadVaultFromDrive non trovato'); return; }
+    document.getElementById('sync-save').addEventListener('click', async () => {
       try {
-        const key = await ensureKeyLoaded().catch(e => { dbg('ensureKeyLoaded error: ' + e.message); throw e; });
-        const enc = await loadVaultFromDrive();
-        if (!enc) { dbg('Nessun vault su Drive'); return; }
+        const key = await window.ensureKeyLoaded();
+        const plain = document.getElementById('vault-area').value || '{}';
+        const enc = await encryptWithKeyB64(key, plain);
+        await window.saveVaultToDrive(enc);
+        log('Vault salvato su Drive');
+      } catch (e) {
+        log('Errore salvataggio: ' + (e && e.message ? e.message : JSON.stringify(e)));
+      }
+    });
+
+    document.getElementById('sync-load').addEventListener('click', async () => {
+      try {
+        const key = await window.ensureKeyLoaded();
+        const enc = await window.loadVaultFromDrive();
+        if (!enc) { log('Nessun vault su Drive'); return; }
         const plain = await decryptWithKeyB64(key, enc);
-        vaultArea.value = plain;
-        dbg('Vault caricato e decrittato');
-      } catch(e) { dbg('load error: ' + (e && e.message ? e.message : JSON.stringify(e))); }
+        document.getElementById('vault-area').value = plain;
+        log('Vault caricato e decrittato');
+      } catch (e) {
+        log('Errore caricamento: ' + (e && e.message ? e.message : JSON.stringify(e)));
+      }
+    });
+
+    document.getElementById('lock').addEventListener('click', () => {
+      document.getElementById('st-text').textContent = 'bloccato';
+      log('Interfaccia bloccata');
     });
   </script>
 </body>
