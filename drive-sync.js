@@ -87,9 +87,8 @@ async function findFileByName(name) {
 
 async function uploadFileToAppData(name, content, mime='application/octet-stream') {
   const existing = await findFileByName(name);
-  const metadataCreate = { name, parents: ['appDataFolder'] };
-  const metadataUpdate = { name }; // NON includere parents per update
 
+  // Build multipart for create
   const boundary = '-------vault' + Math.random().toString(36).slice(2);
   const buildMultipart = (metadata) => {
     const parts = [];
@@ -101,23 +100,28 @@ async function uploadFileToAppData(name, content, mime='application/octet-stream
   };
 
   const token = await getAccessToken();
+
   if (existing) {
-    // Update content only: non includere parents nel metadata
-    const body = buildMultipart(metadataUpdate);
-    const url = `https://www.googleapis.com/upload/drive/v3/files/${existing.id}?uploadType=multipart`;
+    // Update only content using uploadType=media (PATCH)
+    const url = `https://www.googleapis.com/upload/drive/v3/files/${existing.id}?uploadType=media`;
     const res = await fetch(url, {
       method: 'PATCH',
-      headers: { Authorization: 'Bearer ' + token },
-      body
+      headers: {
+        Authorization: 'Bearer ' + token,
+        'Content-Type': mime
+      },
+      body: content
     });
     if (!res.ok) {
       const txt = await res.text().catch(()=>null);
       throw new Error('Upload failed: ' + res.status + ' ' + txt);
     }
-    return await res.json();
+    // Some responses to media uploads return empty body; return existing metadata if needed
+    try { return await res.json(); } catch(e) { return { id: existing.id }; }
   } else {
-    // Create new file in appDataFolder
-    const body = buildMultipart(metadataCreate);
+    // Create new file in appDataFolder with multipart (POST)
+    const metadata = { name, parents: ['appDataFolder'] };
+    const body = buildMultipart(metadata);
     const url = 'https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart';
     const res = await fetch(url, {
       method: 'POST',
