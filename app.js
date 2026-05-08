@@ -1,6 +1,5 @@
 const STORAGE_KEY = "vault-items";
 let editingId = null;
-let sortAsc = true;
 
 const titleInput = document.getElementById("titleInput");
 const usernameInput = document.getElementById("usernameInput");
@@ -10,7 +9,7 @@ const notesInput = document.getElementById("notesInput");
 
 const saveBtn = document.getElementById("saveBtn");
 const resetBtn = document.getElementById("resetBtn");
-const sortBtn = document.getElementById("sortBtn");
+const sortSelect = document.getElementById("sortSelect");
 const itemsContainer = document.getElementById("itemsContainer");
 
 function loadItems() {
@@ -34,8 +33,32 @@ function resetForm() {
   notesInput.value = "";
 }
 
+function sortItems(items) {
+  const mode = sortSelect.value;
+
+  if (mode === "name-asc") {
+    return items.sort((a, b) => a.title.localeCompare(b.title));
+  }
+
+  if (mode === "name-desc") {
+    return items.sort((a, b) => b.title.localeCompare(a.title));
+  }
+
+  if (mode === "recent") {
+    return items.sort((a, b) => b.id - a.id);
+  }
+
+  if (mode === "oldest") {
+    return items.sort((a, b) => a.id - b.id);
+  }
+
+  return items;
+}
+
 function renderItems() {
-  const items = loadItems();
+  let items = loadItems();
+  items = sortItems(items);
+
   itemsContainer.innerHTML = "";
 
   if (!items.length) {
@@ -119,21 +142,6 @@ saveBtn.onclick = () => {
 
 resetBtn.onclick = resetForm;
 
-/* ORDINAMENTO */
-sortBtn.onclick = () => {
-  const items = loadItems();
-
-  items.sort((a, b) => {
-    if (a.title.toLowerCase() < b.title.toLowerCase()) return sortAsc ? -1 : 1;
-    if (a.title.toLowerCase() > b.title.toLowerCase()) return sortAsc ? 1 : -1;
-    return 0;
-  });
-
-  sortAsc = !sortAsc;
-  saveItems(items);
-  renderItems();
-};
-
 /* OCCHI PASSWORD/PIN */
 document.querySelectorAll(".eye").forEach(eye => {
   eye.onclick = () => {
@@ -142,4 +150,8 @@ document.querySelectorAll(".eye").forEach(eye => {
   };
 });
 
+/* RENDER iniziale */
 renderItems();
+
+/* RENDER quando cambia ordinamento */
+sortSelect.onchange = renderItems;
