@@ -8,7 +8,9 @@
   --text-light: #f2f2f7;
 }
 
-/* LAYOUT GENERALE */
+/* ===========================
+   LAYOUT GENERALE
+=========================== */
 body {
   margin: 0;
   font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", sans-serif;
@@ -21,6 +23,7 @@ body {
   max-width: 900px;
   margin: 0 auto;
   padding: 16px;
+  width: 100%;
   box-sizing: border-box;
 }
 
@@ -32,29 +35,40 @@ h1 {
   color: #000;
 }
 
-/* DUE COLONNE DESKTOP, UNA MOBILE */
+/* ===========================
+   GRIGLIA RESPONSIVE
+=========================== */
 .layout {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 16px;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 @media (max-width: 768px) {
   .layout {
     grid-template-columns: 1fr;
+    padding: 0 12px; /* CENTRA LE CARD SU MOBILE */
   }
 }
 
-/* CARD */
+/* ===========================
+   CARD
+=========================== */
 .card {
   background: var(--card-bg);
   border-radius: 14px;
   padding: 16px;
   color: var(--text-light);
   box-shadow: 0 4px 14px rgba(0,0,0,0.4);
+  width: 100%;
+  box-sizing: border-box; /* EVITA DECENTRAMENTI */
 }
 
-/* INPUT */
+/* ===========================
+   INPUT
+=========================== */
 label {
   font-size: 0.75rem;
   font-weight: 600;
@@ -75,6 +89,7 @@ input, textarea {
   background: var(--card-bg-2);
   color: var(--text-light);
   font-size: 0.9rem;
+  box-sizing: border-box;
 }
 
 .eye {
@@ -86,7 +101,9 @@ input, textarea {
   opacity: 0.7;
 }
 
-/* BOTTONI CANGIANTI + GLOW */
+/* ===========================
+   BOTTONI CANGIANTI + GLOW
+=========================== */
 button {
   width: 100%;
   padding: 10px;
@@ -126,7 +143,9 @@ button:hover {
   box-shadow: 0 0 10px rgba(0,255,150,0.4);
 }
 
-/* LISTA */
+/* ===========================
+   LISTA
+=========================== */
 .item {
   background: var(--card-bg-2);
   padding: 12px;
@@ -140,7 +159,9 @@ button:hover {
   margin-bottom: 4px;
 }
 
-/* SELECT ORDINAMENTO */
+/* ===========================
+   SELECT ORDINAMENTO
+=========================== */
 .sort-select {
   background: var(--card-bg-2);
   color: var(--text-light);
@@ -151,7 +172,9 @@ button:hover {
   width: auto;
 }
 
-/* MASTER PASSWORD OVERLAY */
+/* ===========================
+   MASTER PASSWORD OVERLAY
+=========================== */
 .overlay {
   position: fixed;
   inset: 0;
@@ -172,7 +195,9 @@ button:hover {
   color: var(--text-light);
 }
 
-/* POPUP VISUALIZZA FULLSCREEN iOS */
+/* ===========================
+   POPUP VISUALIZZA FULLSCREEN iOS
+=========================== */
 #viewOverlay {
   position: fixed;
   inset: 0;
