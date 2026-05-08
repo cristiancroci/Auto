@@ -1,293 +1,287 @@
 /* ============================================================
-   VARIABILI GLOBALI
+   CONFIGURAZIONE GOOGLE DRIVE
 ============================================================ */
-const STORAGE_KEY = "vault-encrypted";
-let editingId = null;
-let masterKey = null;
+const CLIENT_ID = "776375898567-ee2jfmfd9cte7dp6fj02k5ubpvag4e29.apps.googleusercontent.com";
+const API_KEY = ""; // non serve per Drive semplice
+const SCOPES = "https://www.googleapis.com/auth/drive.file";
+const DISCOVERY_DOCS = ["https://www.googleapis.com/discovery/v1/apis/drive/v3/rest"];
 
-/* ELEMENTI DOM */
-const titleInput = document.getElementById("titleInput");
-const usernameInput = document.getElementById("usernameInput");
-const passwordInput = document.getElementById("passwordInput");
-const pinInput = document.getElementById("pinInput");
-const notesInput = document.getElementById("notesInput");
-
-const saveBtn = document.getElementById("saveBtn");
-const resetBtn = document.getElementById("resetBtn");
-const sortSelect = document.getElementById("sortSelect");
-const itemsContainer = document.getElementById("itemsContainer");
-
-const masterOverlay = document.getElementById("masterOverlay");
-const masterInput = document.getElementById("masterInput");
-const unlockBtn = document.getElementById("unlockBtn");
-
-/* POPUP VISUALIZZA */
-const viewOverlay = document.getElementById("viewOverlay");
-const viewTitle = document.getElementById("viewTitle");
-const viewUser = document.getElementById("viewUser");
-const viewPass = document.getElementById("viewPass");
-const viewPin = document.getElementById("viewPin");
-const viewNotes = document.getElementById("viewNotes");
-const viewEdit = document.getElementById("viewEdit");
-const viewDelete = document.getElementById("viewDelete");
-const viewClose = document.getElementById("viewClose");
-
-let currentViewId = null;
+let googleAuth;
+let driveReady = false;
+let driveFolderId = null;
+const DRIVE_FOLDER_NAME = "VaultSync";
+const DRIVE_FILE_NAME = "vault-data.json";
 
 /* ============================================================
-   CRITTOGRAFIA AES-GCM
+   CIFRATURA AES-GCM
 ============================================================ */
-async function deriveKeyFromPassword(password) {
-  const enc = new TextEncoder();
-  const salt = enc.encode("vault-static-salt");
-
-  const baseKey = await crypto.subtle.importKey(
-    "raw",
-    enc.encode(password),
-    "PBKDF2",
-    false,
-    ["deriveKey"]
-  );
-
-  return crypto.subtle.deriveKey(
-    {
-      name: "PBKDF2",
-      salt,
-      iterations: 100000,
-      hash: "SHA-256",
-    },
-    baseKey,
-    { name: "AES-GCM", length: 256 },
-    false,
-    ["encrypt", "decrypt"]
-  );
-}
-
-async function encryptData(obj) {
-  if (!masterKey) return null;
-
-  const enc = new TextEncoder();
-  const iv = crypto.getRandomValues(new Uint8Array(12));
-  const data = enc.encode(JSON.stringify(obj));
-
-  const cipher = await crypto.subtle.encrypt(
-    { name: "AES-GCM", iv },
-    masterKey,
-    data
-  );
-
-  const buff = new Uint8Array(cipher);
-  const full = new Uint8Array(iv.length + buff.length);
-  full.set(iv, 0);
-  full.set(buff, iv.length);
-
-  return btoa(String.fromCharCode(...full));
-}
-
-async function decryptData(str) {
-  if (!masterKey) return [];
-
-  try {
-    const bin = atob(str);
-    const bytes = new Uint8Array([...bin].map(c => c.charCodeAt(0)));
-
-    const iv = bytes.slice(0, 12);
-    const data = bytes.slice(12);
-
-    const plain = await crypto.subtle.decrypt(
-      { name: "AES-GCM", iv },
-      masterKey,
-      data
+async function getKeyFromPassword(password) {
+    const enc = new TextEncoder();
+    const keyMaterial = await crypto.subtle.importKey(
+        "raw",
+        enc.encode(password),
+        { name: "PBKDF2" },
+        false,
+        ["deriveKey"]
     );
 
-    const dec = new TextDecoder().decode(plain);
-    return JSON.parse(dec);
-  } catch {
-    return [];
-  }
+    return crypto.subtle.deriveKey(
+        {
+            name: "PBKDF2",
+            salt: enc.encode("vault-salt"),
+            iterations: 100000,
+            hash: "SHA-256"
+        },
+        keyMaterial,
+        { name: "AES-GCM", length: 256 },
+        false,
+        ["encrypt", "decrypt"]
+    );
+}
+
+async function encryptData(key, data) {
+    const enc = new TextEncoder();
+    const iv = crypto.getRandomValues(new Uint8Array(12));
+
+    const encrypted = await crypto.subtle.encrypt(
+        { name: "AES-GCM", iv },
+        key,
+        enc.encode(JSON.stringify(data))
+    );
+
+    return {
+        iv: Array.from(iv),
+        data: Array.from(new Uint8Array(encrypted))
+    };
+}
+
+async function decryptData(key, encrypted) {
+    const iv = new Uint8Array(encrypted.iv);
+    const data = new Uint8Array(encrypted.data);
+
+    const decrypted = await crypto.subtle.decrypt(
+        { name: "AES-GCM", iv },
+        key,
+        data
+    );
+
+    const dec = new TextDecoder();
+    return JSON.parse(dec.decode(decrypted));
 }
 
 /* ============================================================
-   STORAGE
+   GOOGLE DRIVE: LOGIN + CARTELLA + FILE
 ============================================================ */
-async function loadItems() {
-  const encrypted = localStorage.getItem(STORAGE_KEY);
-  if (!encrypted) return [];
-  return await decryptData(encrypted);
+function initGoogle() {
+    return new Promise(resolve => {
+        gapi.load("client:auth2", async () => {
+            await gapi.client.init({
+                apiKey: API_KEY,
+                clientId: CLIENT_ID,
+                discoveryDocs: DISCOVERY_DOCS,
+                scope: SCOPES
+            });
+
+            googleAuth = gapi.auth2.getAuthInstance();
+            resolve();
+        });
+    });
 }
 
-async function saveItems(items) {
-  const encrypted = await encryptData(items);
-  if (encrypted) {
-    localStorage.setItem(STORAGE_KEY, encrypted);
-  }
+async function ensureGoogleLogin() {
+    if (!googleAuth.isSignedIn.get()) {
+        await googleAuth.signIn(); // popup
+    }
+    driveReady = true;
+}
+
+async function ensureDriveFolder() {
+    const res = await gapi.client.drive.files.list({
+        q: `name='${DRIVE_FOLDER_NAME}' and mimeType='application/vnd.google-apps.folder' and trashed=false`,
+        fields: "files(id,name)"
+    });
+
+    if (res.result.files.length > 0) {
+        driveFolderId = res.result.files[0].id;
+        return;
+    }
+
+    const create = await gapi.client.drive.files.create({
+        resource: {
+            name: DRIVE_FOLDER_NAME,
+            mimeType: "application/vnd.google-apps.folder"
+        },
+        fields: "id"
+    });
+
+    driveFolderId = create.result.id;
+}
+
+async function ensureDriveFile() {
+    const res = await gapi.client.drive.files.list({
+        q: `'${driveFolderId}' in parents and name='${DRIVE_FILE_NAME}' and trashed=false`,
+        fields: "files(id,name)"
+    });
+
+    if (res.result.files.length > 0) {
+        return res.result.files[0].id;
+    }
+
+    const create = await gapi.client.drive.files.create({
+        resource: {
+            name: DRIVE_FILE_NAME,
+            parents: [driveFolderId]
+        },
+        fields: "id"
+    });
+
+    return create.result.id;
+}
+
+async function uploadToDrive(jsonString) {
+    const fileId = await ensureDriveFile();
+
+    const boundary = "-------314159265358979323846";
+    const delimiter = "\r\n--" + boundary + "\r\n";
+    const closeDelim = "\r\n--" + boundary + "--";
+
+    const contentType = "application/json";
+
+    const metadata = {
+        name: DRIVE_FILE_NAME,
+        mimeType: contentType
+    };
+
+    const multipartRequestBody =
+        delimiter +
+        "Content-Type: application/json\r\n\r\n" +
+        JSON.stringify(metadata) +
+        delimiter +
+        "Content-Type: " + contentType + "\r\n\r\n" +
+        jsonString +
+        closeDelim;
+
+    await gapi.client.request({
+        path: "/upload/drive/v3/files/" + fileId,
+        method: "PATCH",
+        params: { uploadType: "multipart" },
+        headers: { "Content-Type": "multipart/related; boundary=" + boundary },
+        body: multipartRequestBody
+    });
+}
+
+async function downloadFromDrive() {
+    const fileId = await ensureDriveFile();
+
+    const res = await gapi.client.drive.files.get({
+        fileId,
+        alt: "media"
+    });
+
+    return res.body;
+}
+
+/* ============================================================
+   VAULT: SALVATAGGIO LOCALE + DRIVE
+============================================================ */
+let masterKey = null;
+let items = [];
+
+function saveLocal() {
+    localStorage.setItem("vault-items", JSON.stringify(items));
+}
+
+async function saveAll() {
+    saveLocal();
+
+    if (driveReady && masterKey) {
+        const encrypted = await encryptData(masterKey, items);
+        await uploadToDrive(JSON.stringify(encrypted));
+    }
+}
+
+async function loadAll() {
+    const local = localStorage.getItem("vault-items");
+    if (local) {
+        items = JSON.parse(local);
+    }
+
+    if (driveReady && masterKey) {
+        try {
+            const raw = await downloadFromDrive();
+            if (raw) {
+                const encrypted = JSON.parse(raw);
+                items = await decryptData(masterKey, encrypted);
+                saveLocal();
+            }
+        } catch (e) {
+            console.warn("Nessun file Drive valido.");
+        }
+    }
+
+    renderItems();
 }
 
 /* ============================================================
    UI
 ============================================================ */
-function resetForm() {
-  editingId = null;
-  titleInput.value = "";
-  usernameInput.value = "";
-  passwordInput.value = "";
-  pinInput.value = "";
-  notesInput.value = "";
-}
+function renderItems() {
+    const list = document.getElementById("savedList");
+    list.innerHTML = "";
 
-function sortItems(items) {
-  const mode = sortSelect.value;
+    if (items.length === 0) {
+        list.innerHTML = "<p>Nessuna voce salvata.</p>";
+        return;
+    }
 
-  if (mode === "name-asc") return items.sort((a, b) => a.title.localeCompare(b.title));
-  if (mode === "name-desc") return items.sort((a, b) => b.title.localeCompare(a.title));
-  if (mode === "recent") return items.sort((a, b) => b.id - a.id);
-  if (mode === "oldest") return items.sort((a, b) => a.id - b.id);
-
-  return items;
-}
-
-async function renderItems() {
-  let items = await loadItems();
-  items = sortItems(items);
-
-  itemsContainer.innerHTML = "";
-
-  if (!items.length) {
-    itemsContainer.innerHTML = "<p style='opacity:0.6;font-size:0.8rem;'>Nessuna voce salvata.</p>";
-    return;
-  }
-
-  items.forEach(item => {
-    const div = document.createElement("div");
-    div.className = "item";
-
-    div.innerHTML = `
-      <div class="item-title">${item.title}</div>
-      <div style="opacity:0.7;font-size:0.8rem;">
-        User: ${item.username || "-"} • PIN: ${item.pin ? "••••" : "-"}
-      </div>
-    `;
-
-    div.onclick = () => openView(item);
-
-    itemsContainer.appendChild(div);
-  });
+    items.forEach((item, index) => {
+        const div = document.createElement("div");
+        div.className = "item";
+        div.innerHTML = `
+            <div class="item-title">${item.title}</div>
+            <div class="item-user">${item.username}</div>
+        `;
+        div.onclick = () => viewItem(index);
+        list.appendChild(div);
+    });
 }
 
 /* ============================================================
-   POPUP VISUALIZZA
+   AVVIO
 ============================================================ */
-function openView(item) {
-  currentViewId = item.id;
+document.addEventListener("DOMContentLoaded", async () => {
+    // Mostra overlay master password
+    document.getElementById("masterOverlay").style.display = "flex";
 
-  viewTitle.textContent = item.title;
-  viewUser.textContent = item.username || "-";
-  viewPass.textContent = item.password || "-";
-  viewPin.textContent = item.pin || "-";
-  viewNotes.textContent = item.notes || "-";
+    document.getElementById("unlockBtn").onclick = async () => {
+        const pwd = document.getElementById("masterInput").value.trim();
+        if (!pwd) return;
 
-  viewOverlay.style.display = "flex";
-}
+        masterKey = await getKeyFromPassword(pwd);
 
-viewClose.onclick = () => {
-  viewOverlay.style.display = "none";
-};
+        // Nascondi overlay
+        document.getElementById("masterOverlay").style.display = "none";
 
-viewEdit.onclick = async () => {
-  const items = await loadItems();
-  const item = items.find(i => i.id === currentViewId);
-  if (!item) return;
+        // Inizializza Google
+        await initGoogle();
+        await ensureGoogleLogin();
+        await ensureDriveFolder();
 
-  editingId = item.id;
+        // Carica dati
+        await loadAll();
+    };
 
-  titleInput.value = item.title;
-  usernameInput.value = item.username;
-  passwordInput.value = item.password;
-  pinInput.value = item.pin;
-  notesInput.value = item.notes;
+    document.getElementById("saveBtn").onclick = async () => {
+        const item = {
+            title: document.getElementById("title").value,
+            username: document.getElementById("username").value,
+            password: document.getElementById("password").value,
+            pin: document.getElementById("pin").value,
+            note: document.getElementById("note").value
+        };
 
-  viewOverlay.style.display = "none";
-  window.scrollTo({ top: 0, behavior: "smooth" });
-};
-
-viewDelete.onclick = async () => {
-  if (!confirm("Eliminare questa voce?")) return;
-
-  let items = await loadItems();
-  items = items.filter(i => i.id !== currentViewId);
-
-  await saveItems(items);
-  viewOverlay.style.display = "none";
-  await renderItems();
-};
-
-/* ============================================================
-   SALVATAGGIO
-============================================================ */
-saveBtn.onclick = async () => {
-  const title = titleInput.value.trim();
-  if (!title) {
-    alert("Inserisci un titolo");
-    return;
-  }
-
-  const item = {
-    id: editingId || Date.now(),
-    title,
-    username: usernameInput.value.trim(),
-    password: passwordInput.value.trim(),
-    pin: pinInput.value.trim(),
-    notes: notesInput.value.trim(),
-  };
-
-  let items = await loadItems();
-
-  if (editingId) {
-    items = items.map(i => (i.id === editingId ? item : i));
-  } else {
-    items.push(item);
-  }
-
-  await saveItems(items);
-  resetForm();
-  await renderItems();
-};
-
-resetBtn.onclick = resetForm;
-
-/* ============================================================
-   OCCHI PASSWORD
-============================================================ */
-document.querySelectorAll(".eye").forEach(eye => {
-  eye.onclick = () => {
-    const target = document.getElementById(eye.dataset.target);
-    target.type = target.type === "password" ? "text" : "password";
-  };
-});
-
-/* ============================================================
-   ORDINAMENTO
-============================================================ */
-sortSelect.onchange = () => {
-  renderItems();
-};
-
-/* ============================================================
-   MASTER PASSWORD
-============================================================ */
-unlockBtn.onclick = async () => {
-  const pwd = masterInput.value.trim();
-  if (!pwd) {
-    alert("Inserisci la master password");
-    return;
-  }
-
-  masterKey = await deriveKeyFromPassword(pwd);
-
-  masterOverlay.style.display = "none";
-  await renderItems();
-};
-
-masterInput.addEventListener("keydown", e => {
-  if (e.key === "Enter") unlockBtn.click();
+        items.push(item);
+        await saveAll();
+        renderItems();
+    };
 });
