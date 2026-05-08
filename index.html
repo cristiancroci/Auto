@@ -10,7 +10,7 @@
 
 <body>
   <div class="page">
-    <h1>Vault</h1>
+    <h1>🔐 Vault</h1>
 
     <div class="layout">
       <!-- SINISTRA -->
@@ -36,13 +36,17 @@
         <label>Note (opzionali)</label>
         <textarea id="notesInput" rows="2" placeholder="Aggiungi note..."></textarea>
 
-        <button class="btn-primary" id="saveBtn">Salva</button>
-        <button class="btn-secondary" id="resetBtn">Annulla</button>
+        <button class="btn-primary" id="saveBtn">💾 Salva</button>
+        <button class="btn-secondary" id="resetBtn">↩️ Annulla</button>
       </div>
 
       <!-- DESTRA -->
       <div class="card">
-        <h3 style="margin-top:0;">Voci salvate</h3>
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+          <h3 style="margin:0;">Voci salvate</h3>
+          <button class="btn-secondary" id="sortBtn" style="width:auto; padding:6px 14px; font-size:0.8rem;">🔽 Ordina</button>
+        </div>
+
         <div id="itemsContainer"></div>
       </div>
     </div>
