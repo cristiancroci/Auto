@@ -1,4 +1,3 @@
-
 // service-worker.js
 const CACHE_NAME = 'vault-shell-v1';
 const APP_SHELL = [
@@ -7,7 +6,7 @@ const APP_SHELL = [
   '/manifest.json',
   '/icons/icon-192.png',
   '/icons/icon-512.png',
-  // aggiungi qui altri asset statici usati (css, js, fonts)
+  // aggiungi qui altri asset statici (css, js, fonts)
 ];
 
 self.addEventListener('install', event => {
@@ -38,10 +37,8 @@ self.addEventListener('fetch', event => {
     return;
   }
 
-  // Runtime: network-first for dynamic requests (Drive API calls will be network)
+  // Runtime: network-first for dynamic requests
   event.respondWith(
-    fetch(req).then(resp => {
-      return resp;
-    }).catch(() => caches.match(req))
+    fetch(req).then(resp => resp).catch(() => caches.match(req))
   );
 });
