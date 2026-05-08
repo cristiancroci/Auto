@@ -3,40 +3,197 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Vault</title>
+  <title>Vault — PWA + Drive Sync</title>
 
   <link rel="manifest" href="manifest.json">
   <meta name="theme-color" content="#0b2130">
+  <link rel="apple-touch-icon" href="icons/icon-192.png">
 
   <style>
-    body {
-      margin:0;
-      font-family: system-ui, sans-serif;
-      background:#eef6fb;
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      height:100vh;
-    }
-    .box {
-      background:white;
-      padding:20px;
-      border-radius:12px;
-      box-shadow:0 10px 30px rgba(0,0,0,0.1);
-      text-align:center;
-    }
+    body{margin:0;font-family:system-ui,Segoe UI,Roboto,Arial;background:#eef6fb;display:flex;align-items:center;justify-content:center;height:100vh}
+    .card{width:100%;max-width:520px;background:#fff;padding:18px;border-radius:12px;box-shadow:0 10px 30px rgba(0,0,0,0.08)}
+    .row{display:flex;gap:8px;margin-top:12px}
+    input,button{padding:10px;border-radius:8px;border:1px solid #ddd}
+    .btn{background:linear-gradient(90deg,#00d4ff,#7b61ff);color:#021025;border:none;font-weight:700;cursor:pointer}
+    .muted{color:#6b7b8a;font-size:13px}
+    pre{background:#f6f8fa;padding:8px;border-radius:8px;overflow:auto}
   </style>
 </head>
 <body>
-  <div class="box">
-    <h2>Vault</h2>
-    <p>Base PWA funzionante</p>
+  <div class="card" role="main" aria-labelledby="title">
+    <h2 id="title">Vault</h2>
+    <div class="muted">Sincronizzazione Google Drive — PIN per sblocco</div>
+
+    <div id="status" style="margin-top:12px;color:#0b2130">Stato: <span id="st-text">non connesso</span></div>
+
+    <div style="margin-top:12px">
+      <label>Imposta PIN (4-8 cifre)</label>
+      <div class="row">
+        <input id="pin-input" type="password" inputmode="numeric" placeholder="PIN">
+        <button id="set-pin" class="btn">Imposta PIN</button>
+      </div>
+    </div>
+
+    <div style="margin-top:12px">
+      <button id="google-login" class="btn">Connetti Google</button>
+      <button id="sync-save" class="btn" style="margin-left:8px">Salva su Drive</button>
+      <button id="sync-load" class="btn" style="margin-left:8px">Carica da Drive</button>
+    </div>
+
+    <div style="margin-top:12px">
+      <label>Vault (JSON)</label>
+      <textarea id="vault-area" style="width:100%;height:160px;padding:10px;border-radius:8px;border:1px solid #ddd"></textarea>
+    </div>
+
+    <div style="margin-top:12px;display:flex;gap:8px;justify-content:flex-end">
+      <button id="lock" class="btn">Blocca</button>
+    </div>
+
+    <div style="margin-top:12px">
+      <div class="muted">Debug</div>
+      <pre id="log" style="height:120px"></pre>
+    </div>
   </div>
 
+  <!-- Google API must be loaded before drive-sync.js -->
+  <script src="https://apis.google.com/js/api.js"></script>
+
+  <!-- Crypto helpers -->
+  <script src="crypto.js"></script>
+
+  <!-- Drive sync logic -->
+  <script src="drive-sync.js"></script>
+
+  <!-- Service worker registration (relative path) -->
   <script>
     if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('service-worker.js');
+      navigator.serviceWorker.register('service-worker.js').catch(()=>{});
     }
+  </script>
+
+  <script>
+    // UI glue
+    const logEl = document.getElementById('log');
+    function log(...args){ logEl.textContent += args.join(' ') + '\n'; logEl.scrollTop = logEl.scrollHeight; }
+
+    const pinInput = document.getElementById('pin-input');
+    const setPinBtn = document.getElementById('set-pin');
+    const googleLoginBtn = document.getElementById('google-login');
+    const syncSaveBtn = document.getElementById('sync-save');
+    const syncLoadBtn = document.getElementById('sync-load');
+    const vaultArea = document.getElementById('vault-area');
+    const stText = document.getElementById('st-text');
+    const lockBtn = document.getElementById('lock');
+
+    // Session state
+    let sessionUnlocked = false;
+
+    function updateUI(){
+      stText.textContent = sessionUnlocked ? 'sbloccato' : 'bloccato';
+      vaultArea.disabled = !sessionUnlocked;
+    }
+
+    // PIN handling: store hashed PIN locally (not cryptographic key)
+    setPinBtn.addEventListener('click', async () => {
+      const pin = pinInput.value.trim();
+      if (!/^\d{4,8}$/.test(pin)) { log('PIN non valido'); return; }
+      // store salted hash in localStorage
+      const salt = crypto.getRandomValues(new Uint8Array(12));
+      const hash = await derivePinHash(pin, salt);
+      localStorage.setItem('vault_pin_salt', btoa(String.fromCharCode(...salt)));
+      localStorage.setItem('vault_pin_hash', hash);
+      log('PIN impostato');
+      pinInput.value = '';
+    });
+
+    // Unlock with PIN
+    pinInput.addEventListener('keydown', async (e) => {
+      if (e.key === 'Enter') {
+        const pin = pinInput.value.trim();
+        const saltB64 = localStorage.getItem('vault_pin_salt');
+        const stored = localStorage.getItem('vault_pin_hash');
+        if (!saltB64 || !stored) { log('Nessun PIN impostato'); return; }
+        const salt = Uint8Array.from(atob(saltB64), c=>c.charCodeAt(0));
+        const hash = await derivePinHash(pin, salt);
+        if (hash === stored) {
+          sessionUnlocked = true;
+          updateUI();
+          log('Sbloccato');
+        } else {
+          log('PIN errato');
+        }
+        pinInput.value = '';
+      }
+    });
+
+    lockBtn.addEventListener('click', () => {
+      sessionUnlocked = false;
+      updateUI();
+      log('Bloccato');
+    });
+
+    // Google login
+    googleLoginBtn.addEventListener('click', async () => {
+      try {
+        await gdriveInit(); // from drive-sync.js
+        log('Google API inizializzato');
+        stText.textContent = 'Google pronto';
+      } catch (e) {
+        log('Errore Google init: ' + e.message);
+      }
+    });
+
+    // Save vault: encrypt with key (from Drive) and upload
+    syncSaveBtn.addEventListener('click', async () => {
+      try {
+        if (!sessionUnlocked) { log('Sblocca con PIN prima'); return; }
+        const json = vaultArea.value || '{}';
+        const key = await ensureKeyLoaded(); // from drive-sync.js
+        const encrypted = await encryptWithKeyString(key, json);
+        await saveVaultToDrive(encrypted); // from drive-sync.js
+        log('Vault salvato su Drive');
+      } catch (e) { log('Save error: ' + e.message); }
+    });
+
+    // Load vault: download, decrypt, show
+    syncLoadBtn.addEventListener('click', async () => {
+      try {
+        if (!sessionUnlocked) { log('Sblocca con PIN prima'); return; }
+        const key = await ensureKeyLoaded();
+        const enc = await loadVaultFromDrive();
+        if (!enc) { log('Nessun vault su Drive'); return; }
+        const plainB64 = await decryptWithKeyString(key, enc);
+        vaultArea.value = plainB64;
+        log('Vault caricato');
+      } catch (e) { log('Load error: ' + e.message); }
+    });
+
+    // helper: ensure key present locally or load from Drive
+    async function ensureKeyLoaded(){
+      let keyB64 = localStorage.getItem('vault_key_b64');
+      if (keyB64) return keyB64;
+      // try to load from Drive
+      const k = await loadKeyFromDrive(); // from drive-sync.js
+      if (!k) throw new Error('Chiave non trovata su Drive. Connetti Google e crea una nuova chiave.');
+      localStorage.setItem('vault_key_b64', k);
+      return k;
+    }
+
+    // derivePinHash uses crypto.js function derivePinHash
+    async function derivePinHash(pin, salt){
+      return await derivePinHashLocal(pin, salt); // implemented in crypto.js
+    }
+
+    // encrypt/decrypt wrappers using crypto.js
+    async function encryptWithKeyString(keyB64, plainText){
+      return await encryptWithKeyB64(keyB64, plainText);
+    }
+    async function decryptWithKeyString(keyB64, cipherB64){
+      return await decryptWithKeyB64(keyB64, cipherB64);
+    }
+
+    updateUI();
+    log('Interfaccia pronta');
   </script>
 </body>
 </html>
