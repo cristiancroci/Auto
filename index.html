@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>La Mia App</title>
+  <title>Vault</title>
 
   <link rel="manifest" href="manifest.webmanifest">
   <meta name="theme-color" content="#000000">
@@ -11,118 +11,241 @@
   <style>
     body {
       margin: 0;
-      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", sans-serif;
-      background: #000000;
-      padding: 20px;
+      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", sans-serif;
+      background: #000;
       color: #f2f2f7;
       display: flex;
       flex-direction: column;
-      gap: 20px;
+      min-height: 100vh;
+    }
+
+    header {
+      padding: 16px 20px 8px;
     }
 
     h1 {
-      font-size: 2rem;
-      font-weight: 700;
-      margin-bottom: 10px;
-      color: #ffffff;
+      font-size: 1.8rem;
+      margin: 0;
+    }
+
+    .tabs {
+      display: flex;
+      gap: 8px;
+      padding: 0 20px 12px;
+    }
+
+    .tab {
+      flex: 1;
+      text-align: center;
+      padding: 8px 0;
+      border-radius: 999px;
+      font-size: 0.9rem;
+      cursor: pointer;
+      background: #1c1c1e;
+      color: #8e8e93;
+    }
+
+    .tab.active {
+      background: #0a84ff;
+      color: #fff;
+    }
+
+    main {
+      flex: 1;
+      padding: 0 20px 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
     }
 
     .card {
       background: #1c1c1e;
       border-radius: 18px;
-      padding: 20px;
+      padding: 16px 16px 18px;
       box-shadow: 0 6px 20px rgba(0,0,0,0.45);
       border: 1px solid rgba(255,255,255,0.05);
     }
 
-    label {
-      font-size: 0.9rem;
+    .card-title {
+      font-size: 1rem;
       font-weight: 600;
-      margin-bottom: 6px;
+      margin-bottom: 10px;
+    }
+
+    label {
+      font-size: 0.8rem;
+      font-weight: 600;
+      margin-bottom: 4px;
       display: block;
       color: #d1d1d6;
     }
 
     input, textarea {
       width: 100%;
-      padding: 12px 14px;
+      padding: 10px 12px;
       border-radius: 12px;
       border: 1px solid #3a3a3c;
-      margin-bottom: 14px;
-      font-size: 1rem;
+      margin-bottom: 10px;
+      font-size: 0.95rem;
       background: #2c2c2e;
-      color: #ffffff;
+      color: #fff;
+    }
+
+    .row {
+      display: flex;
+      gap: 8px;
+    }
+
+    .row > div {
+      flex: 1;
+    }
+
+    .actions {
+      display: flex;
+      gap: 8px;
+      margin-top: 6px;
     }
 
     button {
-      padding: 12px 22px;
+      padding: 10px 18px;
       border-radius: 999px;
       border: none;
-      font-size: 1rem;
+      font-size: 0.9rem;
       cursor: pointer;
       font-weight: 600;
+    }
+
+    .btn-primary {
       background: #0a84ff;
       color: #fff;
       box-shadow: 0 4px 12px rgba(10,132,255,0.35);
+      flex: 1;
     }
 
-    button.secondary {
+    .btn-secondary {
       background: #3a3a3c;
       color: #f2f2f7;
-      box-shadow: none;
-      margin-left: 8px;
+    }
+
+    .list-empty {
+      font-size: 0.85rem;
+      opacity: 0.6;
     }
 
     .item {
       background: #2c2c2e;
-      padding: 14px;
       border-radius: 14px;
-      margin-bottom: 10px;
-      box-shadow: 0 2px 10px rgba(0,0,0,0.4);
+      padding: 10px 12px;
+      margin-bottom: 8px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .item-header {
       display: flex;
       justify-content: space-between;
       align-items: center;
+      gap: 8px;
     }
 
-    .item button {
+    .item-title {
+      font-weight: 600;
+      font-size: 0.95rem;
+    }
+
+    .item-meta {
+      font-size: 0.8rem;
+      opacity: 0.7;
+    }
+
+    .item-actions {
+      display: flex;
+      gap: 6px;
+      margin-top: 6px;
+    }
+
+    .btn-small {
+      padding: 6px 10px;
+      font-size: 0.75rem;
+      border-radius: 999px;
+    }
+
+    .btn-edit {
+      background: #0a84ff;
+      color: #fff;
+    }
+
+    .btn-delete {
       background: #ff453a;
       color: #fff;
-      padding: 6px 14px;
-      font-size: 0.8rem;
-      border-radius: 999px;
-      box-shadow: none;
     }
 
     footer {
-      text-align: center;
+      padding: 8px 20px 14px;
+      font-size: 0.75rem;
       opacity: 0.5;
-      font-size: 0.85rem;
-      margin-top: auto;
-      color: #d1d1d6;
+      text-align: center;
     }
   </style>
 </head>
 
 <body>
-  <h1>La Mia App</h1>
+  <header>
+    <h1>Vault</h1>
+  </header>
 
-  <div class="card">
-    <label>Nome</label>
-    <input id="keyInput" type="text" placeholder="Titolo">
-
-    <label>Valore</label>
-    <textarea id="valueInput" rows="3" placeholder="Contenuto..."></textarea>
-
-    <button id="saveBtn">Salva</button>
-    <button id="clearBtn" class="secondary">Svuota tutto</button>
+  <div class="tabs">
+    <div class="tab active" data-tab="all">Tutti</div>
+    <div class="tab" data-tab="login">Login</div>
+    <div class="tab" data-tab="note">Note</div>
   </div>
 
-  <div class="card">
-    <h2 style="margin-top:0;color:#fff;">Elementi salvati</h2>
-    <div id="itemsContainer"></div>
-  </div>
+  <main>
+    <section class="card">
+      <div class="card-title" id="formTitle">Nuova voce</div>
 
-  <footer>Design iOS Dark — elegante e moderno</footer>
+      <label for="typeSelect">Tipo</label>
+      <select id="typeSelect" style="width:100%;padding:10px 12px;border-radius:12px;border:1px solid #3a3a3c;background:#2c2c2e;color:#fff;margin-bottom:10px;">
+        <option value="login">Login (username + password + PIN)</option>
+        <option value="note">Nota semplice</option>
+      </select>
+
+      <label for="titleInput">Titolo</label>
+      <input id="titleInput" type="text" placeholder="Es. Gmail, Banca, App X">
+
+      <div id="loginFields">
+        <label for="usernameInput">Username / Testo</label>
+        <input id="usernameInput" type="text" placeholder="Es. nome.utente">
+
+        <div class="row">
+          <div>
+            <label for="passwordInput">Password</label>
+            <input id="passwordInput" type="password" placeholder="••••••••">
+          </div>
+          <div>
+            <label for="pinInput">PIN</label>
+            <input id="pinInput" type="password" inputmode="numeric" placeholder="Es. 1234">
+          </div>
+        </div>
+      </div>
+
+      <label for="notesInput">Note (opzionali)</label>
+      <textarea id="notesInput" rows="3" placeholder="Aggiungi dettagli, domande di sicurezza, ecc."></textarea>
+
+      <div class="actions">
+        <button class="btn-primary" id="saveBtn">Salva</button>
+        <button class="btn-secondary" id="resetBtn">Annulla</button>
+      </div>
+    </section>
+
+    <section class="card">
+      <div class="card-title">Voci salvate</div>
+      <div id="itemsContainer"></div>
+    </section>
+  </main>
+
+  <footer>Vault PWA — schede, login, PIN, note, modifica ed elimina</footer>
 
   <script src="app.js"></script>
 </body>
