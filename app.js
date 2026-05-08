@@ -1,5 +1,6 @@
 const STORAGE_KEY = "vault-items";
 let editingId = null;
+let sortAsc = true;
 
 const titleInput = document.getElementById("titleInput");
 const usernameInput = document.getElementById("usernameInput");
@@ -9,6 +10,7 @@ const notesInput = document.getElementById("notesInput");
 
 const saveBtn = document.getElementById("saveBtn");
 const resetBtn = document.getElementById("resetBtn");
+const sortBtn = document.getElementById("sortBtn");
 const itemsContainer = document.getElementById("itemsContainer");
 
 function loadItems() {
@@ -37,7 +39,7 @@ function renderItems() {
   itemsContainer.innerHTML = "";
 
   if (!items.length) {
-    itemsContainer.innerHTML = "<p style='opacity:0.6;'>Nessuna voce salvata.</p>";
+    itemsContainer.innerHTML = "<p style='opacity:0.6;font-size:0.8rem;'>Nessuna voce salvata.</p>";
     return;
   }
 
@@ -51,8 +53,8 @@ function renderItems() {
         User: ${item.username || "-"} • PIN: ${item.pin ? "••••" : "-"}
       </div>
       <div class="item-actions">
-        <button class="btn-small btn-edit">Modifica</button>
-        <button class="btn-small btn-delete">Elimina</button>
+        <button class="btn-small btn-edit">✏️ Modifica</button>
+        <button class="btn-small btn-delete">🗑️ Elimina</button>
       </div>
     `;
 
@@ -117,7 +119,22 @@ saveBtn.onclick = () => {
 
 resetBtn.onclick = resetForm;
 
-// Occhi password/PIN
+/* ORDINAMENTO */
+sortBtn.onclick = () => {
+  const items = loadItems();
+
+  items.sort((a, b) => {
+    if (a.title.toLowerCase() < b.title.toLowerCase()) return sortAsc ? -1 : 1;
+    if (a.title.toLowerCase() > b.title.toLowerCase()) return sortAsc ? 1 : -1;
+    return 0;
+  });
+
+  sortAsc = !sortAsc;
+  saveItems(items);
+  renderItems();
+};
+
+/* OCCHI PASSWORD/PIN */
 document.querySelectorAll(".eye").forEach(eye => {
   eye.onclick = () => {
     const target = document.getElementById(eye.dataset.target);
@@ -125,5 +142,4 @@ document.querySelectorAll(".eye").forEach(eye => {
   };
 });
 
-// Init
 renderItems();
