@@ -6,42 +6,120 @@
   <title>La Mia App</title>
 
   <link rel="manifest" href="manifest.webmanifest">
-  <meta name="theme-color" content="#4b6cff">
+  <meta name="theme-color" content="#ffffff">
 
   <style>
     body {
       margin: 0;
-      font-family: "Inter", system-ui, sans-serif;
-      background: linear-gradient(135deg, #4b6cff, #8f5cff);
-      min-height: 100vh;
+      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", sans-serif;
+      background: #f5f5f7;
       padding: 20px;
-      color: #fff;
+      color: #1c1c1e;
       display: flex;
       flex-direction: column;
       gap: 20px;
     }
 
     h1 {
-      font-size: 1.8rem;
+      font-size: 2rem;
       font-weight: 700;
-      text-shadow: 0 2px 6px rgba(0,0,0,0.25);
+      margin-bottom: 10px;
     }
 
     .card {
-      backdrop-filter: blur(14px);
-      background: rgba(255,255,255,0.15);
-      border-radius: 20px;
+      background: #ffffff;
+      border-radius: 18px;
       padding: 20px;
-      box-shadow: 0 8px 25px rgba(0,0,0,0.25);
-      border: 1px solid rgba(255,255,255,0.25);
+      box-shadow: 0 4px 18px rgba(0,0,0,0.08);
     }
 
     label {
       font-size: 0.9rem;
-      opacity: 0.9;
-      margin-bottom: 5px;
+      font-weight: 600;
+      margin-bottom: 6px;
       display: block;
     }
 
     input, textarea {
       width: 100%;
+      padding: 12px 14px;
+      border-radius: 12px;
+      border: 1px solid #d2d2d7;
+      margin-bottom: 14px;
+      font-size: 1rem;
+      background: #fafafa;
+      color: #1c1c1e;
+    }
+
+    button {
+      padding: 12px 22px;
+      border-radius: 999px;
+      border: none;
+      font-size: 1rem;
+      cursor: pointer;
+      font-weight: 600;
+      background: #007aff;
+      color: #fff;
+      box-shadow: 0 4px 12px rgba(0,122,255,0.25);
+    }
+
+    button.secondary {
+      background: #e5e5ea;
+      color: #1c1c1e;
+      box-shadow: none;
+      margin-left: 8px;
+    }
+
+    .item {
+      background: #ffffff;
+      padding: 14px;
+      border-radius: 14px;
+      margin-bottom: 10px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.06);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .item button {
+      background: #ff3b30;
+      color: #fff;
+      padding: 6px 14px;
+      font-size: 0.8rem;
+      border-radius: 999px;
+      box-shadow: none;
+    }
+
+    footer {
+      text-align: center;
+      opacity: 0.6;
+      font-size: 0.85rem;
+      margin-top: auto;
+    }
+  </style>
+</head>
+
+<body>
+  <h1>La Mia App</h1>
+
+  <div class="card">
+    <label>Nome</label>
+    <input id="keyInput" type="text" placeholder="Titolo">
+
+    <label>Valore</label>
+    <textarea id="valueInput" rows="3" placeholder="Contenuto..."></textarea>
+
+    <button id="saveBtn">Salva</button>
+    <button id="clearBtn" class="secondary">Svuota tutto</button>
+  </div>
+
+  <div class="card">
+    <h2 style="margin-top:0;">Elementi salvati</h2>
+    <div id="itemsContainer"></div>
+  </div>
+
+  <footer>Design stile iOS — PWA elegante</footer>
+
+  <script src="app.js"></script>
+</body>
+</html>
