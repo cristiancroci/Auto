@@ -9,15 +9,29 @@
 </head>
 
 <body>
-  <!-- MODALE MASTER PASSWORD -->
+
+  <!-- MASTER PASSWORD -->
   <div id="masterOverlay" class="overlay">
     <div class="overlay-card">
       <h2>🔐 Sblocca il Vault</h2>
-      <p style="font-size:0.85rem; opacity:0.8;">
-        Inserisci la tua master password per accedere alle voci salvate.
-      </p>
       <input id="masterInput" type="password" placeholder="Master password">
       <button class="btn-save" id="unlockBtn">🔓 Sblocca</button>
+    </div>
+  </div>
+
+  <!-- POPUP VISUALIZZA -->
+  <div id="viewOverlay">
+    <div class="view-card">
+      <h2 id="viewTitle"></h2>
+
+      <p><b>Username:</b> <span id="viewUser"></span></p>
+      <p><b>Password:</b> <span id="viewPass"></span></p>
+      <p><b>PIN:</b> <span id="viewPin"></span></p>
+      <p><b>Note:</b><br><span id="viewNotes"></span></p>
+
+      <button class="btn-edit" id="viewEdit">✏️ Modifica</button>
+      <button class="btn-delete" id="viewDelete">🗑️ Elimina</button>
+      <button class="btn-cancel" id="viewClose">❌ Chiudi</button>
     </div>
   </div>
 
@@ -30,7 +44,7 @@
         <label>Titolo</label>
         <input id="titleInput" type="text">
 
-        <label>Username / Testo</label>
+        <label>Username</label>
         <input id="usernameInput" type="text">
 
         <label>Password</label>
