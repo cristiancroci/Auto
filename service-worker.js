@@ -1,12 +1,11 @@
-// service-worker.js
+// service-worker.js (versione corretta per project page)
 const CACHE_NAME = 'vault-shell-v1';
 const APP_SHELL = [
-  '/',
-  '/index.html',
-  '/manifest.json',
-  '/icons/icon-192.png',
-  '/icons/icon-512.png',
-  // aggiungi qui altri asset statici (css, js, fonts)
+  'index.html',
+  'manifest.json',
+  'icons/icon-192.png',
+  'icons/icon-512.png',
+  'drive-sync.js' // aggiungi qui altri asset statici necessari
 ];
 
 self.addEventListener('install', event => {
@@ -27,17 +26,30 @@ self.addEventListener('activate', event => {
 
 self.addEventListener('fetch', event => {
   const req = event.request;
-  const url = new URL(req.url);
 
-  // App shell: cache-first for same-origin static assets
-  if (APP_SHELL.includes(url.pathname) || url.origin === location.origin) {
+  // 1) Navigation requests (pagina) -> network-first fallback cache
+  if (req.mode === 'navigate') {
+    event.respondWith(
+      fetch(req).then(resp => {
+        // aggiorna cache della shell se serve
+        caches.open(CACHE_NAME).then(cache => cache.put(req, resp.clone()));
+        return resp;
+      }).catch(() => caches.match('index.html'))
+    );
+    return;
+  }
+
+  // 2) Static app shell assets -> cache-first
+  const url = new URL(req.url);
+  const pathname = url.pathname.replace(/^\/+/, ''); // rimuove leading slash
+  if (APP_SHELL.includes(pathname)) {
     event.respondWith(
       caches.match(req).then(cached => cached || fetch(req))
     );
     return;
   }
 
-  // Runtime: network-first for dynamic requests
+  // 3) Altri request -> network-first fallback cache
   event.respondWith(
     fetch(req).then(resp => resp).catch(() => caches.match(req))
   );
