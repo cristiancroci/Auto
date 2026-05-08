@@ -9,7 +9,6 @@ let tokenExpiry = 0;
 function initTokenClient() {
   if (tokenClient) return;
   if (!window.google || !google.accounts || !google.accounts.oauth2) {
-    // throw only when called interactively; allow page to load
     console.warn('GSI client non disponibile');
     return;
   }
@@ -140,7 +139,6 @@ window.gdriveInit = async function(){
     await requestAccessTokenSilent().catch(()=>null);
     return;
   } catch (e) {
-    // don't throw to page; return error to caller
     throw e;
   }
 };
