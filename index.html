@@ -11,42 +11,58 @@
       font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", sans-serif;
       background: #000;
       color: #f2f2f7;
-      padding: 16px;
+      padding: 12px;
     }
 
     h1 {
-      font-size: 1.6rem;
-      margin-bottom: 14px;
+      font-size: 1.4rem;
+      margin-bottom: 12px;
+    }
+
+    .layout {
+      display: flex;
+      gap: 12px;
+    }
+
+    /* Smartphone: impila le colonne */
+    @media (max-width: 768px) {
+      .layout {
+        flex-direction: column;
+      }
+    }
+
+    .col {
+      flex: 1;
     }
 
     .card {
       background: #1c1c1e;
-      border-radius: 16px;
-      padding: 14px;
-      margin-bottom: 16px;
+      border-radius: 14px;
+      padding: 12px;
+      margin-bottom: 12px;
       box-shadow: 0 4px 14px rgba(0,0,0,0.4);
     }
 
     label {
-      font-size: 0.8rem;
+      font-size: 0.75rem;
       font-weight: 600;
-      margin-bottom: 4px;
+      margin-bottom: 3px;
       display: block;
     }
 
     .input-wrap {
       position: relative;
-      margin-bottom: 10px;
+      margin-bottom: 8px;
     }
 
     input, textarea {
       width: 100%;
-      padding: 10px 12px;
+      padding: 8px 10px;
       border-radius: 10px;
       border: 1px solid #3a3a3c;
       background: #2c2c2e;
       color: #fff;
-      font-size: 0.9rem;
+      font-size: 0.85rem;
     }
 
     .eye {
@@ -54,17 +70,17 @@
       right: 10px;
       top: 50%;
       transform: translateY(-50%);
-      font-size: 1.1rem;
+      font-size: 1rem;
       cursor: pointer;
       opacity: 0.7;
     }
 
     button {
       width: 100%;
-      padding: 12px;
+      padding: 10px;
       border-radius: 999px;
       border: none;
-      font-size: 1rem;
+      font-size: 0.9rem;
       font-weight: 600;
       margin-top: 6px;
       cursor: pointer;
@@ -82,27 +98,28 @@
 
     .item {
       background: #2c2c2e;
-      padding: 12px;
+      padding: 10px;
       border-radius: 12px;
-      margin-bottom: 10px;
+      margin-bottom: 8px;
     }
 
     .item-title {
       font-weight: 600;
       margin-bottom: 4px;
+      font-size: 0.9rem;
     }
 
     .item-actions {
       display: flex;
-      gap: 8px;
-      margin-top: 8px;
+      gap: 6px;
+      margin-top: 6px;
     }
 
     .btn-small {
       flex: 1;
-      padding: 8px;
+      padding: 6px;
       border-radius: 999px;
-      font-size: 0.8rem;
+      font-size: 0.75rem;
       border: none;
       cursor: pointer;
     }
@@ -115,35 +132,43 @@
 <body>
   <h1>Vault</h1>
 
-  <div class="card">
-    <label>Titolo</label>
-    <input id="titleInput" type="text" placeholder="Es. Gmail">
+  <div class="layout">
+    <!-- COLONNA SINISTRA -->
+    <div class="col">
+      <div class="card">
+        <label>Titolo</label>
+        <input id="titleInput" type="text" placeholder="Es. Gmail">
 
-    <label>Username / Testo</label>
-    <input id="usernameInput" type="text" placeholder="Es. nome.utente">
+        <label>Username / Testo</label>
+        <input id="usernameInput" type="text" placeholder="Es. nome.utente">
 
-    <label>Password</label>
-    <div class="input-wrap">
-      <input id="passwordInput" type="password" placeholder="••••••••">
-      <span class="eye" data-target="passwordInput">👁️</span>
+        <label>Password</label>
+        <div class="input-wrap">
+          <input id="passwordInput" type="password" placeholder="••••••••">
+          <span class="eye" data-target="passwordInput">👁️</span>
+        </div>
+
+        <label>PIN</label>
+        <div class="input-wrap">
+          <input id="pinInput" type="password" inputmode="numeric" placeholder="1234">
+          <span class="eye" data-target="pinInput">👁️</span>
+        </div>
+
+        <label>Note (opzionali)</label>
+        <textarea id="notesInput" rows="2" placeholder="Aggiungi note..."></textarea>
+
+        <button class="btn-primary" id="saveBtn">Salva</button>
+        <button class="btn-secondary" id="resetBtn">Annulla</button>
+      </div>
     </div>
 
-    <label>PIN</label>
-    <div class="input-wrap">
-      <input id="pinInput" type="password" inputmode="numeric" placeholder="1234">
-      <span class="eye" data-target="pinInput">👁️</span>
+    <!-- COLONNA DESTRA -->
+    <div class="col">
+      <div class="card">
+        <h3 style="margin-top:0;">Voci salvate</h3>
+        <div id="itemsContainer"></div>
+      </div>
     </div>
-
-    <label>Note (opzionali)</label>
-    <textarea id="notesInput" rows="2" placeholder="Aggiungi note..."></textarea>
-
-    <button class="btn-primary" id="saveBtn">Salva</button>
-    <button class="btn-secondary" id="resetBtn">Annulla</button>
-  </div>
-
-  <div class="card">
-    <h3 style="margin-top:0;">Voci salvate</h3>
-    <div id="itemsContainer"></div>
   </div>
 
   <script src="app.js"></script>
