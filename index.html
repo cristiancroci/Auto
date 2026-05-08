@@ -6,7 +6,7 @@
   <title>Vault — Drive Sync</title>
   <link rel="manifest" href="manifest.json">
   <meta name="theme-color" content="#0b2130">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self' https://accounts.google.com https://www.googleapis.com; script-src 'self' https://accounts.google.com https://apis.google.com; connect-src 'self' https://www.googleapis.com; style-src 'self' 'unsafe-inline'">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self' https://accounts.google.com https://www.googleapis.com; script-src 'self' https://accounts.google.com https://apis.google.com; connect-src 'self' https://www.googleapis.com; frame-src https://accounts.google.com; style-src 'self' 'unsafe-inline'">
   <style>
     :root{--bg:#eef6fb;--card:#fff;--muted:#6b7b8a;--accent:#00d4ff}
     html,body{height:100%;margin:0;font-family:system-ui,Segoe UI,Roboto,Arial;background:var(--bg)}
@@ -62,7 +62,7 @@
     </div>
   </div>
 
-  <!-- Google Identity Services must load before drive-sync.js -->
+  <!-- GSI must load before drive-sync.js -->
   <script src="https://accounts.google.com/gsi/client" async defer></script>
 
   <!-- Crypto helpers -->
@@ -84,12 +84,22 @@
     const logEl = document.getElementById('log');
     function log(...args){ logEl.textContent += args.join(' ') + '\n'; logEl.scrollTop = logEl.scrollHeight; }
 
-    document.getElementById('google-login').addEventListener('click', async () => {
+    // IMPORTANT: call token request synchronously in click handler
+    document.getElementById('google-login').addEventListener('click', () => {
       try {
+        // If drive-sync exposed a helper to request token synchronously, use it
+        if (window.requestGsiTokenSync) {
+          // requestGsiTokenSync will call tokenClient.requestAccessToken immediately
+          const ok = window.requestGsiTokenSync();
+          if (!ok) throw new Error('Impossibile avviare richiesta token (verifica GSI)');
+          document.getElementById('st-text').textContent = 'autenticazione in corso';
+          log('Richiesta token inviata (popup dovrebbe aprirsi)');
+          toast('Richiesta token inviata');
+          return;
+        }
+        // Fallback: call gdriveInit which may attempt silent; then call interactive
         if (!window.gdriveInit) throw new Error('Modulo drive non caricato');
-        await window.gdriveInit();
-        document.getElementById('st-text').textContent = 'Google pronto';
-        log('Google pronto'); toast('Google pronto');
+        window.gdriveInit().then(()=>{ document.getElementById('st-text').textContent = 'Google pronto'; toast('Google pronto'); }).catch(()=>{});
       } catch (e) {
         document.getElementById('st-text').textContent = 'errore connessione';
         log('Errore connessione: ' + (e && e.message ? e.message : JSON.stringify(e)));
