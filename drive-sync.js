@@ -1,4 +1,4 @@
-// drive-sync.js production version
+// drive-sync.js production safe
 const GAPI_CLIENT_ID = '776375898567-ee2jfmfd9cte7dp6fj02k5ubpvag4e29.apps.googleusercontent.com';
 const GAPI_SCOPES = 'https://www.googleapis.com/auth/drive.appdata';
 
@@ -9,7 +9,9 @@ let tokenExpiry = 0;
 function initTokenClient() {
   if (tokenClient) return;
   if (!window.google || !google.accounts || !google.accounts.oauth2) {
-    throw new Error('GSI client non disponibile');
+    // throw only when called interactively; allow page to load
+    console.warn('GSI client non disponibile');
+    return;
   }
   tokenClient = google.accounts.oauth2.initTokenClient({
     client_id: GAPI_CLIENT_ID,
@@ -27,6 +29,7 @@ function initTokenClient() {
 
 async function requestAccessTokenInteractive() {
   initTokenClient();
+  if (!tokenClient) throw new Error('Token client non inizializzato');
   return new Promise((resolve, reject) => {
     tokenClient.requestAccessToken({ prompt: 'consent' });
     const start = Date.now();
@@ -39,6 +42,7 @@ async function requestAccessTokenInteractive() {
 
 async function requestAccessTokenSilent() {
   initTokenClient();
+  if (!tokenClient) throw new Error('Token client non inizializzato');
   return new Promise((resolve, reject) => {
     tokenClient.requestAccessToken({ prompt: '' });
     const start = Date.now();
@@ -129,22 +133,33 @@ async function downloadFileFromAppData(name) {
   return await res.text();
 }
 
-// Public API used by index.html
+// Public API used by index.html with defensive wrappers
 window.gdriveInit = async function(){
-  initTokenClient();
-  try { await requestAccessTokenSilent(); return; } catch (e) { return; }
+  try {
+    initTokenClient();
+    await requestAccessTokenSilent().catch(()=>null);
+    return;
+  } catch (e) {
+    // don't throw to page; return error to caller
+    throw e;
+  }
 };
 
 window.ensureKeyLoaded = async function(){
-  const key = localStorage.getItem('vault_key_b64');
-  if (key) return key;
-  await ensureSignedInInteractive();
-  const remote = await downloadFileFromAppData('vault_key.json');
-  if (remote) { localStorage.setItem('vault_key_b64', remote); return remote; }
-  const newKey = await generateAesKeyB64();
-  await uploadFileToAppData('vault_key.json', newKey, 'application/json');
-  localStorage.setItem('vault_key_b64', newKey);
-  return newKey;
+  try {
+    const key = localStorage.getItem('vault_key_b64');
+    if (key) return key;
+    await ensureSignedInInteractive();
+    const remote = await downloadFileFromAppData('vault_key.json');
+    if (remote) { localStorage.setItem('vault_key_b64', remote); return remote; }
+    if (typeof generateAesKeyB64 !== 'function') throw new Error('generateAesKeyB64 mancante');
+    const newKey = await generateAesKeyB64();
+    await uploadFileToAppData('vault_key.json', newKey, 'application/json');
+    localStorage.setItem('vault_key_b64', newKey);
+    return newKey;
+  } catch (e) {
+    throw e;
+  }
 };
 
 window.saveKeyToDrive = async function(keyB64){
