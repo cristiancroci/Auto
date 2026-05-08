@@ -1,6 +1,6 @@
 // drive-sync.js
 // Requisito: <script src="https://apis.google.com/js/api.js"></script> incluso in index.html
-const GAPI_CLIENT_ID = 'YOUR_CLIENT_ID.apps.googleusercontent.com';
+const GAPI_CLIENT_ID = '776375898567-ee2jfmfd9cte7dp6fj02k5ubpvag4e29.apps.googleusercontent.com?project=il-mio-vault';
 const GAPI_SCOPES = 'https://www.googleapis.com/auth/drive.appdata';
 
 async function initGapi() {
