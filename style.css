@@ -1,3 +1,6 @@
+/* ===========================
+   PALETTE (modificabile)
+=========================== */
 :root {
   --bg: #e9eaed;              /* sfondo generale chiaro */
   --card-bg: #1c1c1e;         /* card scure */
@@ -6,10 +9,6 @@
 
   --text: #000;
   --text-light: #f2f2f7;
-
-  --primary: linear-gradient(135deg, #7fffd4, #00ff99); /* verde chiaro cangiante */
-  --secondary: linear-gradient(135deg, #ffb347, #ffcc33); /* arancio cangiante */
-  --danger: linear-gradient(135deg, #ff6b6b, #ff0000); /* rosso cangiante */
 }
 
 /* ===========================
@@ -104,8 +103,9 @@ input, textarea {
 }
 
 /* ===========================
-   BOTTONI CANGIANTI
+   BOTTONI CANGIANTI INDIPENDENTI
 =========================== */
+
 button {
   width: 100%;
   padding: 10px;
@@ -124,16 +124,24 @@ button:hover {
   background-position: right center;
 }
 
-.btn-primary {
-  background-image: var(--primary);
+/* SALVA — verde acqua cangiante */
+.btn-save {
+  background-image: linear-gradient(135deg, #7fffd4, #00ff99);
 }
 
-.btn-secondary {
-  background-image: var(--secondary);
+/* ANNULLA — bordeaux cangiante */
+.btn-cancel {
+  background-image: linear-gradient(135deg, #7a003c, #b30059);
 }
 
+/* ELIMINA — rosso cangiante */
 .btn-delete {
-  background-image: var(--danger);
+  background-image: linear-gradient(135deg, #ff6b6b, #ff0000);
+}
+
+/* MODIFICA — verde cangiante */
+.btn-edit {
+  background-image: linear-gradient(135deg, #7fffd4, #00ff99);
 }
 
 /* ===========================
@@ -173,6 +181,3 @@ button:hover {
 .btn-small:hover {
   background-position: right center;
 }
-
-.btn-edit { background-image: var(--primary); }
-.btn-delete { background-image: var(--danger); }
