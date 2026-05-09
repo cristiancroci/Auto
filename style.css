@@ -72,6 +72,7 @@ button {
 .redBtn {
   background: linear-gradient(90deg, #ff4d4d, #ff0000, #ff4d4d);
   animation: redGlow 4s infinite;
+  color: white !important;
 }
 @keyframes redGlow {
   0% { box-shadow: 0 0 5px #ff4d4d; }
@@ -82,6 +83,7 @@ button {
 .orangeBtn {
   background: linear-gradient(90deg, #ffb347, #ff8c00, #ffb347);
   animation: orangeGlow 4s infinite;
+  color: white !important;
 }
 @keyframes orangeGlow {
   0% { box-shadow: 0 0 5px #ffb347; }
@@ -92,6 +94,7 @@ button {
 .blueBtn {
   background: linear-gradient(90deg, #4da6ff, #0066ff, #4da6ff);
   animation: blueGlow 4s infinite;
+  color: white !important;
 }
 @keyframes blueGlow {
   0% { box-shadow: 0 0 5px #4da6ff; }
@@ -102,6 +105,7 @@ button {
 .greenBtn {
   background: linear-gradient(90deg, #66ff99, #00cc66, #66ff99);
   animation: greenGlow 4s infinite;
+  color: white !important;
 }
 @keyframes greenGlow {
   0% { box-shadow: 0 0 5px #66ff99; }
@@ -112,6 +116,7 @@ button {
 .purpleBtn {
   background: linear-gradient(90deg, #b366ff, #7f00ff, #b366ff);
   animation: purpleGlow 4s infinite;
+  color: white !important;
 }
 @keyframes purpleGlow {
   0% { box-shadow: 0 0 5px #b366ff; }
