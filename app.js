@@ -1,9 +1,9 @@
-const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzMgmiNvyJyiacBYqJEp8Nhg5GU7AqEtfN4ilq7aF5EmuKBdMdQsQ6YWy2UmCFqFYzMqA/exec";"; // es: https://script.google.com/macros/s/XXX/exec
+const SCRIPT_URL = "YOUR_SCRIPT_URL"; // es: https://script.google.com/macros/s/XXX/exec
 
 let entries = [];
 
 if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.register('service-worker.js');
+  navigator.serviceWorker.register('sw.js');
 }
 
 function load() {
