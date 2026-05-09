@@ -8,14 +8,29 @@ function toggleVis(id) {
   campo.type = campo.type === "password" ? "text" : "password";
 }
 
+/* MOSTRA/NASCONDE NELLO STORICO */
+function toggleStorico(id) {
+  const el = document.getElementById(id);
+  el.classList.toggle("visibile");
+}
+
+/* SANIFICA TESTO PER EVITARE ERRORI JSON */
+function sanitize(txt) {
+  if (!txt) return "";
+  return txt
+    .replace(/[\u0000-\u001F\u007F]/g, "") // caratteri invisibili
+    .replace(/\uFFFD/g, "")               // caratteri invalidi
+    .trim();
+}
+
 /* SALVA SU DRIVE */
 async function salva() {
   const cred = {
-    username: document.getElementById("username").value,
-    password: document.getElementById("password").value,
-    pin: document.getElementById("pin").value,
-    note: document.getElementById("note").value,
-    url: document.getElementById("url").value,
+    username: sanitize(document.getElementById("username").value),
+    password: sanitize(document.getElementById("password").value),
+    pin: sanitize(document.getElementById("pin").value),
+    note: sanitize(document.getElementById("note").value),
+    url: sanitize(document.getElementById("url").value),
     data: new Date().toLocaleString()
   };
 
@@ -23,14 +38,21 @@ async function salva() {
   localStorage.setItem("credenziali", JSON.stringify(lista));
 
   try {
-    await fetch(scriptURL, {
+    const res = await fetch(scriptURL, {
       method: "POST",
       body: JSON.stringify(lista),
       headers: { "Content-Type": "application/json" }
     });
-    document.getElementById("status").textContent = "✅ Salvato su Drive";
+
+    const out = await res.json();
+
+    if (out.ok) {
+      document.getElementById("status").textContent = "✅ Salvato su Drive";
+    } else {
+      document.getElementById("status").textContent = "❌ Errore: " + out.error;
+    }
   } catch (e) {
-    document.getElementById("status").textContent = "❌ Errore salvataggio";
+    document.getElementById("status").textContent = "❌ Errore salvataggio: " + e;
   }
 
   aggiornaUI();
@@ -41,6 +63,7 @@ async function caricaDaDrive() {
   try {
     const res = await fetch(scriptURL + "?mode=load");
     const data = await res.json();
+
     if (Array.isArray(data)) {
       lista = data;
       localStorage.setItem("credenziali", JSON.stringify(lista));
@@ -87,12 +110,6 @@ function aggiornaUI() {
     `;
     ul.appendChild(li);
   });
-}
-
-/* MOSTRA/NASCONDE NELLO STORICO */
-function toggleStorico(id) {
-  const el = document.getElementById(id);
-  el.classList.toggle("visibile");
 }
 
 /* AVVIO APP */
