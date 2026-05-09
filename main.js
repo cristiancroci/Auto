@@ -2,6 +2,7 @@ const scriptURL = "https://script.google.com/macros/s/AKfycbzMgmiNvyJyiacBYqJEp8
 
 let lista = [];
 
+
 /* MOSTRA o NASCONDE password e pin */
 function toggleVis(id) {
   const campo = document.getElementById(id);
