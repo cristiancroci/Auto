@@ -2,72 +2,63 @@
 <html lang="it">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Vault</title>
-  <link rel="stylesheet" href="style.css">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Password Manager</title>
+  <link rel="stylesheet" href="style.css" />
+  <link rel="manifest" href="manifest.json" />
 </head>
 
 <body>
+  <header>
+    <h1>🛠️ Password Manager</h1>
+    <p>Gestione sicura delle tue credenziali</p>
+  </header>
 
-  <!-- NOTIFICHE -->
-  <div id="notifyBox"></div>
+  <main class="layout">
 
-  <!-- MASTER PASSWORD -->
-  <div id="masterOverlay" class="overlay">
-    <div class="overlay-card">
-      <h2>🔐 Sblocca il Vault</h2>
-      <input id="masterInput" type="password" placeholder="Master password">
-      <button class="btn-save" id="unlockBtn">🔓 Sblocca</button>
-    </div>
-  </div>
+    <!-- FORM -->
+    <div class="card">
+      <h2>🛠️ Nuova credenziale</h2>
 
-  <!-- POPUP VISUALIZZA -->
-  <div id="viewOverlay" class="view-overlay">
-    <div class="view-card">
-      <h2 id="viewTitle"></h2>
+      <label>Username</label>
+      <input id="username" type="text">
 
-      <p><b>Username:</b><br><span id="viewUser"></span></p>
-      <p><b>Password:</b><br><span id="viewPass"></span></p>
-      <p><b>PIN:</b><br><span id="viewPin"></span></p>
-      <p><b>Note:</b><br><span id="viewNotes"></span></p>
-
-      <button class="btn-cancel" id="viewClose">❌ Chiudi</button>
-    </div>
-  </div>
-
-  <div class="page">
-    <h1>🔐 Vault</h1>
-
-    <div class="layout">
-
-      <!-- SINISTRA -->
-      <div class="card">
-        <label>Titolo</label>
-        <input id="titleInput" type="text">
-
-        <label>Username</label>
-        <input id="usernameInput" type="text">
-
-        <label>Password</label>
-        <input id="passwordInput" type="password">
-
-        <label>PIN</label>
-        <input id="pinInput" type="password" inputmode="numeric">
-
-        <label>Note</label>
-        <textarea id="notesInput" rows="2"></textarea>
-
-        <button class="btn-save" id="saveBtn">💾 Salva</button>
+      <label>Password</label>
+      <div class="input-occhio">
+        <input id="password" type="password">
+        <span class="toggle" onclick="toggleVis('password')">👁️</span>
       </div>
 
-      <!-- DESTRA -->
-      <div class="card">
-        <h3>Voci salvate</h3>
-        <div id="itemsContainer"></div>
+      <label>PIN</label>
+      <div class="input-occhio">
+        <input id="pin" type="password">
+        <span class="toggle" onclick="toggleVis('pin')">👁️</span>
       </div>
 
+      <label>Note</label>
+      <textarea id="note"></textarea>
+
+      <label>URL (opzionale)</label>
+      <input id="url" type="text">
+
+      <div class="buttons-row">
+        <button onclick="salva()">✅ Salva</button>
+      </div>
+
+      <div class="status" id="status"></div>
     </div>
-  </div>
+
+    <!-- STORICO -->
+    <div class="card">
+      <div class="storico-header">
+        <h2>📚 Archivio credenziali</h2>
+        <span id="conteggio"></span>
+      </div>
+
+      <ul class="lista-interventi" id="lista"></ul>
+    </div>
+
+  </main>
 
   <script src="app.js"></script>
 </body>
