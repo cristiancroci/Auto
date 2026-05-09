@@ -14,11 +14,14 @@
 
   <h1>Vault 🔐</h1>
 
-  <select id="sortSelect" onchange="applySort()" class="sortMenu">
-    <option value="recent">📅 Recenti</option>
-    <option value="az">🔤 Nome A → Z</option>
-    <option value="za">🔤 Nome Z → A</option>
-  </select>
+  <!-- ORDINAMENTO (modificato: stretto + destra) -->
+  <div class="sortWrapper">
+    <select id="sortSelect" onchange="applySort()" class="sortMenu">
+      <option value="recent">📅 Recenti</option>
+      <option value="az">🔤 Nome A → Z</option>
+      <option value="za">🔤 Nome Z → A</option>
+    </select>
+  </div>
 
   <div class="form">
 
