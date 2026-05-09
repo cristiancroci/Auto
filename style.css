@@ -1,7 +1,7 @@
 body {
   background: #0b1020;
   color: white;
-  font-family: Comic Sans, sans-serif;
+  font-family: Arial, sans-serif;
   padding: 20px;
   max-width: 600px;
   margin: 0 auto;
@@ -88,125 +88,32 @@ button {
   100% { background-position: 0% 50%; }
 }
 
-/* Bottoni Modifica / Elimina — VERSIONE DEFINITIVA */
-.orangeBtn {
-  background: linear-gradient(90deg, #ffb347, #ff8c00, #ffb347) !important;
-  color: white !important;
-  animation: orangeGlow 4s infinite !important;
+/* Bolla del titolo */
+.entryTitle {
+  display: inline-block;
+  background: linear-gradient(90deg, #4da6ff, #0066ff, #4da6ff);
+  padding: 6px 12px;
+  border-radius: 12px;
+  font-weight: bold;
+  font-size: 16px;
+  color: white;
+  margin-bottom: 8px;
+  animation: titleGlow 4s infinite;
 }
 
-@keyframes orangeGlow {
-  0% { box-shadow: 0 0 5px #ffb347; }
-  50% { box-shadow: 0 0 15px #ff8c00; }
-  100% { box-shadow: 0 0 5px #ffb347; }
-}
-
-.redBtn {
-  background: linear-gradient(90deg, #ff4d4d, #ff0000, #ff4d4d) !important;
-  color: white !important;
-  animation: redGlow 4s infinite !important;
-}
-
-@keyframes redGlow {
-  0% { box-shadow: 0 0 5px #ff4d4d; }
-  50% { box-shadow: 0 0 15px #ff0000; }
-  100% { box-shadow: 0 0 5px #ff4d4d; }
-}
-
-/* Eliminazione */
-.confirmOverlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: rgba(0,0,0,0.7);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  z-index: 9999;
-}
-
-.confirmBox {
-  background: #1a1f36;
-  padding: 20px;
-  border-radius: 10px;
-  width: 85%;
-  max-width: 350px;
-  text-align: center;
-  animation: glowCard 4s infinite;
-}
-
-.confirmButtons {
-  display: flex;
-  gap: 10px;
-  margin-top: 15px;
-}
-
-/* Semaforo */
-.statusIndicator {
-  position: fixed;
-  top: 10px;
-  right: 10px;
-  background: #1a1f36;
-  padding: 8px 14px;
-  border-radius: 8px;
-  font-size: 18px;
-  z-index: 9999;
-  box-shadow: 0 0 10px rgba(0,0,0,0.4);
-}
-
-/* Lampeggi OPZIONE A */
-.statusIndicator.ok {
-  animation: greenBlink 2s infinite;
-}
-
-.statusIndicator.saving {
-  animation: yellowBlink 1s infinite;
-}
-
-.statusIndicator.err {
-  animation: redBlink 0.6s infinite;
-}
-
-@keyframes greenBlink {
-  0% { transform: scale(1); opacity: 1; }
-  50% { transform: scale(1.05); opacity: 0.8; }
-  100% { transform: scale(1); opacity: 1; }
-}
-
-@keyframes yellowBlink {
-  0% { transform: scale(1); opacity: 1; }
-  50% { transform: scale(1.15); opacity: 0.6; }
-  100% { transform: scale(1); opacity: 1; }
-}
-
-@keyframes redBlink {
-  0% { transform: scale(1); opacity: 1; }
-  50% { transform: scale(1.2); opacity: 0.4; }
-  100% { transform: scale(1); opacity: 1; }
-}
-
-.greenBtn {
-  background: linear-gradient(90deg, #66ff99, #00cc66, #66ff99) !important;
-  color: white !important;
-  animation: greenGlow 4s infinite !important;
-}
-
-@keyframes greenGlow {
-  0% { box-shadow: 0 0 5px #66ff99; }
-  50% { box-shadow: 0 0 15px #00cc66; }
-  100% { box-shadow: 0 0 5px #66ff99; }
-}
-
-.blueBtn {
-  background: linear-gradient(90deg, #4da6ff, #0066ff, #4da6ff) !important;
-  color: white !important;
-  animation: blueGlow 4s infinite !important;
-}
-
-@keyframes blueGlow {
+@keyframes titleGlow {
   0% { box-shadow: 0 0 5px #4da6ff; }
   50% { box-shadow: 0 0 15px #0066ff; }
   100% { box-shadow: 0 0 5px #4da6ff; }
 }
+
+/* Righe dati */
+.entryRow {
+  margin: 4px 0;
+  font-size: 15px;
+}
+
+.label {
+  font-weight: bold;
+  margin-right: 4px;
+  color
