@@ -257,3 +257,9 @@ button {
   50% { opacity: 0.4; }
   100% { opacity: 1; }
 }
+
+#list {
+  width: 100%;
+  max-width: 380px;
+  margin: 0 auto;
+}
