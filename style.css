@@ -88,6 +88,31 @@ button {
   100% { background-position: 0% 50%; }
 }
 
+/* Bottoni Modifica / Elimina */
+.redBtn {
+  background: linear-gradient(90deg, #ff4d4d, #ff0000, #ff4d4d);
+  animation: redGlow 4s infinite;
+  color: white;
+}
+
+@keyframes redGlow {
+  0% { box-shadow: 0 0 5px #ff4d4d; }
+  50% { box-shadow: 0 0 15px #ff0000; }
+  100% { box-shadow: 0 0 5px #ff4d4d; }
+}
+
+.orangeBtn {
+  background: linear-gradient(90deg, #ffb347, #ff8c00, #ffb347);
+  animation: orangeGlow 4s infinite;
+  color: white;
+}
+
+@keyframes orangeGlow {
+  0% { box-shadow: 0 0 5px #ffb347; }
+  50% { box-shadow: 0 0 15px #ff8c00; }
+  100% { box-shadow: 0 0 5px #ffb347; }
+}
+
 /* Eliminazione */
 .confirmOverlay {
   position: fixed;
@@ -129,7 +154,6 @@ button {
   font-size: 18px;
   z-index: 9999;
   box-shadow: 0 0 10px rgba(0,0,0,0.4);
-  transition: color 0.3s;
 }
 
 /* Lampeggi OPZIONE A */
