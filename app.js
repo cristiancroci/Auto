@@ -49,7 +49,6 @@ function autoSave() {
 async function save() {
   const status = document.getElementById("saveStatus");
 
-  // Stato: salvataggio in corso
   status.className = "statusIndicator saving";
   status.textContent = "🟡 Salvataggio...";
   isSaving = true;
@@ -58,22 +57,18 @@ async function save() {
     const data = encodeURIComponent(JSON.stringify(entries));
     await fetch(SCRIPT_URL + "?action=save&data=" + data);
 
-    // Stato: salvato
     status.className = "statusIndicator ok";
     status.textContent = "🟢 Salvato";
     isSaving = false;
 
   } catch (err) {
     console.error("Errore save:", err);
-
-    // Stato: errore
     status.className = "statusIndicator err";
     status.textContent = "🔴 Errore";
     isSaving = false;
   }
 }
 
-/* Impedisce la chiusura durante il salvataggio */
 window.addEventListener("beforeunload", function (e) {
   if (isSaving) {
     e.preventDefault();
@@ -103,17 +98,25 @@ function render() {
   entries.forEach((e, i) => {
     const div = document.createElement("div");
     div.className = "entry";
+
     div.innerHTML = `
       <b>${escapeHtml(e.title)}</b><br>
+
       👤 ${escapeHtml(e.username)}<br>
-      🔑 ${escapeHtml(e.password)}<br>
-      📌 ${escapeHtml(e.pin)}<br>
+
+      🔑 <span id="pw${i}">••••••••</span>
+      <span class="eyeSmall" onclick="toggleSavedVisibility('pw${i}', '${escapeHtml(e.password)}', this)">👁️</span><br>
+
+      📌 <span id="pin${i}">••••</span>
+      <span class="eyeSmall" onclick="toggleSavedVisibility('pin${i}', '${escapeHtml(e.pin)}', this)">👁️</span><br>
+
       🌐 ${escapeHtml(e.url)}<br>
       📝 ${escapeHtml(e.note)}<br><br>
 
       <button class="orangeBtn" onclick="startEdit(${i})">✏️ Modifica</button>
       <button class="redBtn" onclick="confirmDelete(${i})">🗑️ Elimina</button>
     `;
+
     list.appendChild(div);
   });
 }
@@ -171,7 +174,7 @@ function clearForm() {
 }
 
 /* ============================
-   BANNER ELIMINAZIONE
+   ELIMINAZIONE
 ============================ */
 
 function confirmDelete(i) {
@@ -210,6 +213,35 @@ function doDelete() {
   if (ov) ov.remove();
   render();
   autoSave();
+}
+
+/* ============================
+   VISUALIZZAZIONE PASSWORD/PIN
+============================ */
+
+function toggleInputVisibility(id, el) {
+  const input = document.getElementById(id);
+  if (input.type === "password") {
+    input.type = "text";
+    el.textContent = "🙈";
+  } else {
+    input.type = "password";
+    el.textContent = "👁️";
+  }
+}
+
+function toggleSavedVisibility(spanId, realValue, el) {
+  const span = document.getElementById(spanId);
+
+  if (span.dataset.visible === "true") {
+    span.textContent = spanId.startsWith("pw") ? "••••••••" : "••••";
+    span.dataset.visible = "false";
+    el.textContent = "👁️";
+  } else {
+    span.textContent = realValue || "";
+    span.dataset.visible = "true";
+    el.textContent = "🙈";
+  }
 }
 
 /* ============================
