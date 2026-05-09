@@ -1,5 +1,5 @@
 // 🔗 URL della tua Web App Apps Script
-const WEBAPP_URL = "LA_TUA_WEBAPP_URL"; 
+const WEBAPP_URL = "https://script.google.com/macros/s/AKfycbz6rQ7tNegXiXyHTB4LzWXJO_y136g4NTIdf2-u4ctjO2svMLzgqBaUfzcp_mHENn8bQg/exec"; 
 // esempio: "https://script.google.com/macros/s/AKfycbx123456789/exec"
 
 
