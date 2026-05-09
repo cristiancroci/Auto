@@ -3,13 +3,14 @@ const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzMgmiNvyJyiacBYqJEp
 let entries = [];
 let editIndex = null;
 let deleteIndex = null;
+let isSaving = false;
 
 if ('serviceWorker' in navigator) {
   navigator.serviceWorker.register('sw.js');
 }
 
 /* ============================
-   CARICAMENTO NORMALE (NO CIFRATURA)
+   CARICAMENTO
 ============================ */
 
 async function load() {
@@ -17,14 +18,10 @@ async function load() {
     const r = await fetch(SCRIPT_URL + "?action=load");
     const t = await r.text();
 
-    if (!t) {
-      entries = [];
-    } else {
-      try {
-        entries = JSON.parse(t);
-      } catch (e) {
-        entries = [];
-      }
+    if (!t) entries = [];
+    else {
+      try { entries = JSON.parse(t); }
+      catch { entries = []; }
     }
 
     render();
@@ -50,18 +47,34 @@ function autoSave() {
 }
 
 async function save() {
+  const status = document.getElementById("saveStatus");
+  status.className = "statusIndicator saving";
+  status.textContent = "🟡 Salvataggio...";
+  isSaving = true;
+
   try {
     const data = encodeURIComponent(JSON.stringify(entries));
-
     await fetch(SCRIPT_URL + "?action=save&data=" + data);
 
-    showToast("☁️ Salvato su Drive", "ok");
+    status.className = "statusIndicator ok";
+    status.textContent = "🟢 Salvato";
+    isSaving = false;
 
   } catch (err) {
     console.error("Errore save:", err);
-    showToast("❌ Errore salvataggio", "err");
+    status.className = "statusIndicator err";
+    status.textContent = "🔴 Errore";
+    isSaving = false;
   }
 }
+
+/* Impedisce la chiusura durante il salvataggio */
+window.addEventListener("beforeunload", function (e) {
+  if (isSaving) {
+    e.preventDefault();
+    e.returnValue = "";
+  }
+});
 
 /* ============================
    ORDINAMENTO + RENDER
@@ -192,19 +205,6 @@ function doDelete() {
   if (ov) ov.remove();
   render();
   autoSave();
-}
-
-/* ============================
-   NOTIFICHE TOAST
-============================ */
-
-function showToast(msg, type = "ok") {
-  const t = document.createElement("div");
-  t.className = "toast " + type;
-  t.innerText = msg;
-  document.body.appendChild(t);
-
-  setTimeout(() => t.remove(), 3000);
 }
 
 /* ============================
