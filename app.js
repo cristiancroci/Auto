@@ -99,12 +99,15 @@ function render() {
     const div = document.createElement("div");
     div.className = "entry";
     div.innerHTML = `
-      <b>${escapeHtml(e.title)}</b><br>
-      👤 ${escapeHtml(e.username)}<br>
-      🔑 ${escapeHtml(e.password)}<br>
-      📌 ${escapeHtml(e.pin)}<br>
-      🌐 ${escapeHtml(e.url)}<br>
-      📝 ${escapeHtml(e.note)}<br><br>
+      <div class="entryTitle">🔷 ${escapeHtml(e.title)}</div><br>
+
+      <div class="entryRow">👤 <span class="label">Username:</span> ${escapeHtml(e.username)}</div>
+      <div class="entryRow">🔑 <span class="label">Password:</span> ${escapeHtml(e.password)}</div>
+      <div class="entryRow">📌 <span class="label">PIN:</span> ${escapeHtml(e.pin)}</div>
+      <div class="entryRow">🌐 <span class="label">URL:</span> ${escapeHtml(e.url)}</div>
+      <div class="entryRow">📝 <span class="label">Note:</span> ${escapeHtml(e.note)}</div>
+
+      <br>
 
       <button class="orangeBtn" onclick="startEdit(${i})">✏️ Modifica</button>
       <button class="redBtn" onclick="confirmDelete(${i})">🗑️ Elimina</button>
@@ -132,8 +135,10 @@ function addEntry() {
   } else {
     entries[editIndex] = { title, username, password, pin, url, note };
     editIndex = null;
-    document.querySelector(".addBtn").innerHTML = "➕ Nuova voce";
-    document.querySelector(".addBtn").className = "addBtn crazyBtn";
+
+    const btn = document.getElementById("addBtn");
+    btn.innerHTML = "➕ Nuova voce";
+    btn.className = "crazyBtn";
   }
 
   clearForm();
@@ -152,8 +157,9 @@ function startEdit(i) {
   document.getElementById("url").value = e.url;
   document.getElementById("note").value = e.note;
 
-  document.querySelector(".addBtn").innerHTML = "💾 Salva Modifica";
-  document.querySelector(".addBtn").className = "addBtn greenBtn";
+  const btn = document.getElementById("addBtn");
+  btn.innerHTML = "💾 Salva Modifica";
+  btn.className = "greenBtn";
 }
 
 function clearForm() {
