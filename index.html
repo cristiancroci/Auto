@@ -11,6 +11,9 @@
 </head>
 <body>
 
+  <!-- 🔵 Indicatore di stato salvataggio -->
+  <div id="saveStatus" class="statusIndicator ok">🟢 Salvato</div>
+
   <h1>Password Vault 🔐</h1>
 
   <select id="sortSelect" onchange="applySort()" class="sortMenu">
@@ -29,7 +32,6 @@
     <textarea id="note" placeholder="Note"></textarea>
 
     <button class="addBtn blueBtn" onclick="addEntry()">➕ Nuova voce</button>
-
 
   </div>
 
