@@ -1,13 +1,15 @@
-self.addEventListener("install", () => {
-  self.skipWaiting();
-});
-
-self.addEventListener("activate", (event) => {
-  event.waitUntil(self.clients.claim());
-});
-
-self.addEventListener("fetch", (event) => {
-  event.respondWith(
-    fetch(event.request).catch(() => caches.match(event.request))
-  );
-});
+{
+  "name": "Password Vault",
+  "short_name": "Vault",
+  "start_url": "index.html",
+  "display": "standalone",
+  "background_color": "#0b1020",
+  "theme_color": "#6366f1",
+  "icons": [
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
