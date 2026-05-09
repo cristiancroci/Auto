@@ -11,23 +11,27 @@
 </head>
 <body>
 
-  <h1>Password Vault</h1>
-
+  <h1>Password Vault 🔐</h1>
 
   <div class="form">
+
     <input id="title" placeholder="Titolo / Servizio">
     <input id="username" placeholder="Username">
     <input id="password" placeholder="Password">
     <input id="pin" placeholder="PIN (opzionale)">
     <input id="url" placeholder="URL (opzionale)">
     <textarea id="note" placeholder="Note"></textarea>
-    <button onclick="addEntry()">Aggiungi</button>
+
+    <!-- Bottone Aggiungi / Salva Modifica -->
+    <button class="addBtn" onclick="addEntry()">➕ Aggiungi</button>
+
   </div>
 
   <h2>Voci salvate</h2>
   <div id="list"></div>
 
-  <button class="save" onclick="save()">💾 Salva su Drive</button>
+  <!-- Bottone Salva su Drive -->
+  <button class="save" onclick="save()">☁️💾 Salva su Drive</button>
 
   <script src="app.js"></script>
 </body>
