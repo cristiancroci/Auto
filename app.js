@@ -1,8 +1,5 @@
 const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzMgmiNvyJyiacBYqJEp8Nhg5GU7AqEtfN4ilq7aF5EmuKBdMdQsQ6YWy2UmCFqFYzMqA/exec";
 
-// 🔐 CHIAVE SEMPLICE (CAMBIALA SE VUOI)
-const MASTER_KEY = "mia-chiave-segreta-123";
-
 let entries = [];
 let editIndex = null;
 let deleteIndex = null;
@@ -12,7 +9,7 @@ if ('serviceWorker' in navigator) {
 }
 
 /* ============================
-   CARICAMENTO + DECIFRATURA
+   CARICAMENTO NORMALE (NO CIFRATURA)
 ============================ */
 
 async function load() {
@@ -22,32 +19,15 @@ async function load() {
 
     if (!t) {
       entries = [];
-      render();
-      return;
-    }
-
-    // 1) Proviamo JSON in chiaro (vecchio formato)
-    try {
-      const parsed = JSON.parse(t);
-      if (Array.isArray(parsed)) {
-        entries = parsed;
-        render();
-        autoSave(); // converte subito in cifrato
-        return;
+    } else {
+      try {
+        entries = JSON.parse(t);
+      } catch (e) {
+        entries = [];
       }
-    } catch (e) {}
-
-    // 2) Altrimenti è cifrato
-    try {
-      const jsonStr = await decryptData(MASTER_KEY, t);
-      const parsed = JSON.parse(jsonStr);
-      entries = parsed;
-      render();
-    } catch (e) {
-      alert("Errore: impossibile decifrare i dati.");
-      entries = [];
-      render();
     }
+
+    render();
 
   } catch (err) {
     console.error("Errore load:", err);
@@ -71,9 +51,7 @@ function autoSave() {
 
 async function save() {
   try {
-    const jsonStr = JSON.stringify(entries);
-    const cipherText = await encryptData(MASTER_KEY, jsonStr);
-    const data = encodeURIComponent(cipherText);
+    const data = encodeURIComponent(JSON.stringify(entries));
 
     await fetch(SCRIPT_URL + "?action=save&data=" + data);
 
@@ -217,73 +195,6 @@ function doDelete() {
 }
 
 /* ============================
-   CIFRATURA AES-GCM + PBKDF2
-============================ */
-
-async function encryptData(password, dataStr) {
-  const enc = new TextEncoder();
-  const salt = crypto.getRandomValues(new Uint8Array(16));
-  const iv = crypto.getRandomValues(new Uint8Array(12));
-
-  const key = await deriveKey(password, salt);
-
-  const cipherBuffer = await crypto.subtle.encrypt(
-    { name: "AES-GCM", iv },
-    key,
-    enc.encode(dataStr)
-  );
-
-  const full = new Uint8Array(salt.byteLength + iv.byteLength + cipherBuffer.byteLength);
-  full.set(salt, 0);
-  full.set(iv, salt.byteLength);
-  full.set(new Uint8Array(cipherBuffer), salt.byteLength + iv.byteLength);
-
-  return bytesToBase64(full);
-}
-
-async function decryptData(password, b64) {
-  const full = base64ToBytes(b64);
-  const salt = full.slice(0, 16);
-  const iv = full.slice(16, 28);
-  const data = full.slice(28);
-
-  const key = await deriveKey(password, salt);
-
-  const plainBuffer = await crypto.subtle.decrypt(
-    { name: "AES-GCM", iv },
-    key,
-    data
-  );
-
-  const dec = new TextDecoder();
-  return dec.decode(plainBuffer);
-}
-
-async function deriveKey(password, salt) {
-  const enc = new TextEncoder();
-  const keyMaterial = await crypto.subtle.importKey(
-    "raw",
-    enc.encode(password),
-    { name: "PBKDF2" },
-    false,
-    ["deriveKey"]
-  );
-
-  return crypto.subtle.deriveKey(
-    {
-      name: "PBKDF2",
-      salt,
-      iterations: 100000,
-      hash: "SHA-256"
-    },
-    keyMaterial,
-    { name: "AES-GCM", length: 256 },
-    false,
-    ["encrypt", "decrypt"]
-  );
-}
-
-/* ============================
    NOTIFICHE TOAST
 ============================ */
 
@@ -299,23 +210,6 @@ function showToast(msg, type = "ok") {
 /* ============================
    UTILITY
 ============================ */
-
-function bytesToBase64(bytes) {
-  let binary = "";
-  for (let i = 0; i < bytes.length; i++) {
-    binary += String.fromCharCode(bytes[i]);
-  }
-  return btoa(binary);
-}
-
-function base64ToBytes(b64) {
-  const binary = atob(b64);
-  const bytes = new Uint8Array(binary.length);
-  for (let i = 0; i < binary.length; i++) {
-    bytes[i] = binary.charCodeAt(i);
-  }
-  return bytes;
-}
 
 function escapeHtml(str) {
   return (str || "").replace(/[&<>"']/g, c => ({
