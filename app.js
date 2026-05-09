@@ -5,10 +5,6 @@ let editIndex = null;
 let deleteIndex = null;
 let isSaving = false;
 
-if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.register('sw.js');
-}
-
 /* ============================
    CARICAMENTO
 ============================ */
@@ -17,38 +13,26 @@ async function load() {
   try {
     const r = await fetch(SCRIPT_URL + "?action=load");
     const t = await r.text();
-
-    if (!t) entries = [];
-    else {
-      try { entries = JSON.parse(t); }
-      catch { entries = []; }
-    }
-
-    render();
-
-  } catch (err) {
-    console.error("Errore load:", err);
+    entries = t ? JSON.parse(t) : [];
+  } catch {
     entries = [];
-    render();
   }
+  render();
 }
 
 /* ============================
-   SALVATAGGIO AUTOMATICO
+   SALVATAGGIO
 ============================ */
 
 let saveTimeout = null;
 
 function autoSave() {
   clearTimeout(saveTimeout);
-  saveTimeout = setTimeout(() => {
-    save();
-  }, 500);
+  saveTimeout = setTimeout(save, 500);
 }
 
 async function save() {
   const status = document.getElementById("saveStatus");
-
   status.className = "statusIndicator saving";
   status.textContent = "🟡 Salvataggio...";
   isSaving = true;
@@ -56,40 +40,19 @@ async function save() {
   try {
     const data = encodeURIComponent(JSON.stringify(entries));
     await fetch(SCRIPT_URL + "?action=save&data=" + data);
-
     status.className = "statusIndicator ok";
     status.textContent = "🟢 Salvato";
-    isSaving = false;
-
-  } catch (err) {
-    console.error("Errore save:", err);
+  } catch {
     status.className = "statusIndicator err";
     status.textContent = "🔴 Errore";
-    isSaving = false;
   }
-}
 
-window.addEventListener("beforeunload", function (e) {
-  if (isSaving) {
-    e.preventDefault();
-    e.returnValue = "";
-  }
-});
+  isSaving = false;
+}
 
 /* ============================
-   ORDINAMENTO + RENDER
+   RENDER
 ============================ */
-
-function applySort() {
-  const mode = document.getElementById("sortSelect").value;
-
-  if (mode === "az") entries.sort((a, b) => a.title.localeCompare(b.title));
-  else if (mode === "za") entries.sort((a, b) => b.title.localeCompare(a.title));
-  else entries.reverse();
-
-  render();
-  autoSave();
-}
 
 function render() {
   const list = document.getElementById("list");
@@ -98,6 +61,7 @@ function render() {
   entries.forEach((e, i) => {
     const div = document.createElement("div");
     div.className = "entry";
+
     div.innerHTML = `
       <div class="entryTitle">🔷 ${escapeHtml(e.title)}</div><br>
 
@@ -109,24 +73,25 @@ function render() {
 
       <br>
 
-      <button class="orangeBtn" onclick="startEdit(${i})">✏️ Modifica</button>
-      <button class="redBtn" onclick="confirmDelete(${i})">🗑️ Elimina</button>
+      <button class="btn-edit" onclick="startEdit(${i})">✏️ Modifica</button>
+      <button class="btn-delete" onclick="confirmDelete(${i})">🗑️ Elimina</button>
     `;
+
     list.appendChild(div);
   });
 }
 
 /* ============================
-   GESTIONE VOCI
+   AGGIUNTA / MODIFICA
 ============================ */
 
 function addEntry() {
-  const title = document.getElementById("title").value.trim();
-  const username = document.getElementById("username").value.trim();
-  const password = document.getElementById("password").value.trim();
-  const pin = document.getElementById("pin").value.trim();
-  const url = document.getElementById("url").value.trim();
-  const note = document.getElementById("note").value.trim();
+  const title = titleInput.value.trim();
+  const username = usernameInput.value.trim();
+  const password = passwordInput.value.trim();
+  const pin = pinInput.value.trim();
+  const url = urlInput.value.trim();
+  const note = noteInput.value.trim();
 
   if (!title && !username && !password) return;
 
@@ -136,9 +101,8 @@ function addEntry() {
     entries[editIndex] = { title, username, password, pin, url, note };
     editIndex = null;
 
-    const btn = document.getElementById("addBtn");
-    btn.innerHTML = "➕ Nuova voce";
-    btn.className = "crazyBtn";
+    addBtn.innerHTML = "➕ Nuova voce";
+    addBtn.className = "btn-crazy";
   }
 
   clearForm();
@@ -150,25 +114,24 @@ function startEdit(i) {
   const e = entries[i];
   editIndex = i;
 
-  document.getElementById("title").value = e.title;
-  document.getElementById("username").value = e.username;
-  document.getElementById("password").value = e.password;
-  document.getElementById("pin").value = e.pin;
-  document.getElementById("url").value = e.url;
-  document.getElementById("note").value = e.note;
+  titleInput.value = e.title;
+  usernameInput.value = e.username;
+  passwordInput.value = e.password;
+  pinInput.value = e.pin;
+  urlInput.value = e.url;
+  noteInput.value = e.note;
 
-  const btn = document.getElementById("addBtn");
-  btn.innerHTML = "💾 Salva Modifica";
-  btn.className = "greenBtn";
+  addBtn.innerHTML = "💾 Salva Modifica";
+  addBtn.className = "btn-save";
 }
 
 function clearForm() {
-  document.getElementById("title").value = "";
-  document.getElementById("username").value = "";
-  document.getElementById("password").value = "";
-  document.getElementById("pin").value = "";
-  document.getElementById("url").value = "";
-  document.getElementById("note").value = "";
+  titleInput.value = "";
+  usernameInput.value = "";
+  passwordInput.value = "";
+  pinInput.value = "";
+  urlInput.value = "";
+  noteInput.value = "";
 }
 
 /* ============================
@@ -184,11 +147,11 @@ function confirmDelete(i) {
 
   overlay.innerHTML = `
     <div class="confirmBox">
-      <h3>Sei sicuro di voler eliminare questa voce?</h3>
+      <h3>Eliminare questa voce?</h3>
 
       <div class="confirmButtons">
-        <button class="blueBtn" onclick="cancelDelete()">❌ Annulla</button>
-        <button class="redBtn" onclick="doDelete()">🗑️ Elimina</button>
+        <button class="btn-cancel" onclick="cancelDelete()">❌ Annulla</button>
+        <button class="btn-delete" onclick="doDelete()">🗑️ Elimina</button>
       </div>
     </div>
   `;
@@ -197,18 +160,14 @@ function confirmDelete(i) {
 }
 
 function cancelDelete() {
-  const ov = document.getElementById("confirmOverlay");
-  if (ov) ov.remove();
+  document.getElementById("confirmOverlay").remove();
   deleteIndex = null;
 }
 
 function doDelete() {
-  if (deleteIndex !== null) {
-    entries.splice(deleteIndex, 1);
-  }
+  entries.splice(deleteIndex, 1);
   deleteIndex = null;
-  const ov = document.getElementById("confirmOverlay");
-  if (ov) ov.remove();
+  document.getElementById("confirmOverlay").remove();
   render();
   autoSave();
 }
@@ -228,5 +187,13 @@ function escapeHtml(str) {
 }
 
 /* ============================ */
+
+const titleInput = document.getElementById("title");
+const usernameInput = document.getElementById("username");
+const passwordInput = document.getElementById("password");
+const pinInput = document.getElementById("pin");
+const urlInput = document.getElementById("url");
+const noteInput = document.getElementById("note");
+const addBtn = document.getElementById("addBtn");
 
 load();
