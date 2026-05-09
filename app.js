@@ -1,4 +1,4 @@
-const scriptURL = "https://script.google.com/macros/s/AKfycbzvoxf5nhX8mdnnTGuREGKWIjBNvtmB4EZZ5jAlng11GgfR3yt2YtF1ZS1JvIJ42q0O/exec";
+const scriptURL = "https://script.google.com/macros/s/AKfycbzMgmiNvyJyiacBYqJEp8Nhg5GU7AqEtfN4ilq7aF5EmuKBdMdQsQ6YWy2UmCFqFYzMqA/exec";
 
 let lista = [];
 
