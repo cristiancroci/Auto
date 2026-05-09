@@ -7,42 +7,63 @@ body {
   color: white;
   font-family: Arial, sans-serif;
   padding: 20px;
-  max-width: 600px;
-  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
-
 
 h1, h2 {
   text-align: center;
 }
 
-input, textarea {
+/* ===========================
+   CONTENITORE UNICO
+=========================== */
+
+.container {
   width: 100%;
-  max-width: 100%;
-  margin: 6px 0;
-  box-sizing: border-box;
-  border: none;
+  max-width: 420px;   /* LARGHEZZA PERFETTA */
+  margin: 0 auto;
 }
 
 /* ===========================
-   ORDINAMENTO (FIX DEFINITIVO)
+   ORDINAMENTO
 =========================== */
 
 .sortWrapper {
   width: 100%;
   display: flex;
-  justify-content: flex-end; /* allinea a destra */
+  justify-content: flex-end;
   margin-bottom: 10px;
 }
 
 .sortMenu {
-  width: 150px;        /* stretta */
+  width: 150px;
   padding: 8px;
   border-radius: 8px;
   border: none;
   background: #ffffff;
   color: #000;
   font-size: 14px;
+}
+
+/* ===========================
+   FORM
+=========================== */
+
+.form {
+  width: 100%;
+  max-width: 420px;
+  margin: 0 auto;
+}
+
+input, textarea {
+  width: 100%;
+  padding: 10px;
+  margin: 6px 0;
+  border-radius: 6px;
+  border: none;
+  box-sizing: border-box;
 }
 
 /* ===========================
@@ -54,6 +75,10 @@ input, textarea {
   padding: 14px;
   border-radius: 10px;
   margin-bottom: 12px;
+  width: 100%;
+  max-width: 420px;   /* STESSA LARGHEZZA */
+  margin-left: auto;
+  margin-right: auto;
 }
 
 /* TITOLO IN BOLLA */
