@@ -33,6 +33,7 @@ async function load() {
   }
 }
 
+
 /* ============================
    SALVATAGGIO AUTOMATICO
 ============================ */
