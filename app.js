@@ -186,6 +186,7 @@ function escapeHtml(str) {
   }[c]));
 }
 
+
 /* ============================ */
 
 const titleInput = document.getElementById("title");
