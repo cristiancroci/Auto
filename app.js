@@ -1,7 +1,7 @@
 const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzMgmiNvyJyiacBYqJEp8Nhg5GU7AqEtfN4ilq7aF5EmuKBdMdQsQ6YWy2UmCFqFYzMqA/exec";
 
 // 🔐 CHIAVE SEMPLICE (CAMBIALA SE VUOI)
-const MASTER_KEY = "3656";
+const MASTER_KEY = "mia-chiave-segreta-123";
 
 let entries = [];
 let editIndex = null;
@@ -32,7 +32,7 @@ async function load() {
       if (Array.isArray(parsed)) {
         entries = parsed;
         render();
-        autoSave(); // salva subito in cifrato
+        autoSave(); // converte subito in cifrato
         return;
       }
     } catch (e) {}
@@ -66,7 +66,7 @@ function autoSave() {
   clearTimeout(saveTimeout);
   saveTimeout = setTimeout(() => {
     save();
-  }, 500); // salva dopo mezzo secondo
+  }, 500);
 }
 
 async function save() {
@@ -77,8 +77,11 @@ async function save() {
 
     await fetch(SCRIPT_URL + "?action=save&data=" + data);
 
+    showToast("☁️ Salvato su Drive", "ok");
+
   } catch (err) {
     console.error("Errore save:", err);
+    showToast("❌ Errore salvataggio", "err");
   }
 }
 
@@ -278,6 +281,19 @@ async function deriveKey(password, salt) {
     false,
     ["encrypt", "decrypt"]
   );
+}
+
+/* ============================
+   NOTIFICHE TOAST
+============================ */
+
+function showToast(msg, type = "ok") {
+  const t = document.createElement("div");
+  t.className = "toast " + type;
+  t.innerText = msg;
+  document.body.appendChild(t);
+
+  setTimeout(() => t.remove(), 3000);
 }
 
 /* ============================
