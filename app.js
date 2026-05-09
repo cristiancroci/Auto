@@ -31,7 +31,7 @@ function applySort() {
     entries.sort((a, b) => b.title.localeCompare(a.title));
   }
   else {
-    entries.reverse(); // recenti
+    entries.reverse();
   }
 
   render();
