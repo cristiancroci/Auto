@@ -5,14 +5,13 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Password Vault</title>
 
-
   <link rel="stylesheet" href="style.css">
   <link rel="manifest" href="manifest.json">
   <meta name="theme-color" content="#0b1020">
 </head>
 <body>
 
-  <!-- 🔵 Indicatore di stato salvataggio -->
+  <!-- Semaforo stato salvataggio -->
   <div id="saveStatus" class="statusIndicator ok">🟢 Salvato</div>
 
   <h1>Password Vault 🔐</h1>
@@ -26,26 +25,13 @@
   <div class="form">
 
     <input id="title" placeholder="Titolo / Servizio">
-
-    <div class="inputWrap">
-      <input id="username" placeholder="Username">
-      <span class="eye" onclick="toggleInputVisibility('username', this)">👁️</span>
-    </div>
-
-    <div class="inputWrap">
-      <input id="password" type="password" placeholder="Password">
-      <span class="eye" onclick="toggleInputVisibility('password', this)">👁️</span>
-    </div>
-
-    <div class="inputWrap">
-      <input id="pin" type="password" placeholder="PIN (opzionale)">
-      <span class="eye" onclick="toggleInputVisibility('pin', this)">👁️</span>
-    </div>
-
+    <input id="username" placeholder="Username">
+    <input id="password" placeholder="Password">
+    <input id="pin" placeholder="PIN (opzionale)">
     <input id="url" placeholder="URL (opzionale)">
     <textarea id="note" placeholder="Note"></textarea>
 
-    <button class="addBtn blueBtn" onclick="addEntry()">➕ Nuova voce</button>
+    <button class="addBtn crazyBtn" onclick="addEntry()">➕ Nuova voce</button>
 
   </div>
 
