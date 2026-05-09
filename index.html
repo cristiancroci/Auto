@@ -1,65 +1,30 @@
 <!DOCTYPE html>
 <html lang="it">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Password Manager</title>
-  <link rel="stylesheet" href="style.css" />
-  <link rel="manifest" href="manifest.json" />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Password Vault</title>
+  <link rel="stylesheet" href="style.css">
 </head>
-
 <body>
-  <header>
-    <h1>🛠️ Password Manager</h1>
-    <p>Gestione sicura delle tue credenziali</p>
-  </header>
 
-  <main class="layout">
+  <h1>Password Vault</h1>
 
-    <!-- FORM -->
-    <div class="card">
-      <h2>🛠️ Nuova credenziale</h2>
+  <div class="form">
+    <input id="title" placeholder="Titolo / Servizio">
+    <input id="username" placeholder="Username">
+    <input id="password" placeholder="Password">
+    <input id="pin" placeholder="PIN (opzionale)">
+    <input id="url" placeholder="URL (opzionale)">
+    <textarea id="note" placeholder="Note"></textarea>
+    <button onclick="addEntry()">Aggiungi</button>
+  </div>
 
-      <label>Username</label>
-      <input id="username" type="text">
+  <h2>Voci salvate</h2>
+  <div id="list"></div>
 
-      <label>Password</label>
-      <div class="input-occhio">
-        <input id="password" type="password">
-        <span class="toggle" onclick="toggleVis('password')">👁️</span>
-      </div>
+  <button class="save" onclick="save()">💾 Salva su Drive</button>
 
-      <label>PIN</label>
-      <div class="input-occhio">
-        <input id="pin" type="password">
-        <span class="toggle" onclick="toggleVis('pin')">👁️</span>
-      </div>
-
-      <label>Note</label>
-      <textarea id="note"></textarea>
-
-      <label>URL (opzionale)</label>
-      <input id="url" type="text">
-
-      <div class="buttons-row">
-        <button onclick="salva()">✅ Salva</button>
-      </div>
-
-      <div class="status" id="status"></div>
-    </div>
-
-    <!-- STORICO -->
-    <div class="card">
-      <div class="storico-header">
-        <h2>📚 Archivio credenziali</h2>
-        <span id="conteggio"></span>
-      </div>
-
-      <ul class="lista-interventi" id="lista"></ul>
-    </div>
-
-  </main>
-
-  <script src="main2.js?v=1"></script>
+  <script src="main.js"></script>
 </body>
 </html>
