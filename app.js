@@ -1,5 +1,8 @@
 const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzMgmiNvyJyiacBYqJEp8Nhg5GU7AqEtfN4ilq7aF5EmuKBdMdQsQ6YWy2UmCFqFYzMqA/exec";
 
+// 🔐 CHIAVE SEMPLICE (CAMBIALA SE VUOI)
+const MASTER_KEY = "3656";
+
 let entries = [];
 let editIndex = null;
 let deleteIndex = null;
@@ -8,19 +11,80 @@ if ('serviceWorker' in navigator) {
   navigator.serviceWorker.register('sw.js');
 }
 
-function load() {
-  fetch(SCRIPT_URL + "?action=load")
-    .then(r => r.text())
-    .then(t => {
-      try {
-        entries = JSON.parse(t || "[]");
-      } catch (e) {
-        entries = [];
-      }
+/* ============================
+   CARICAMENTO + DECIFRATURA
+============================ */
+
+async function load() {
+  try {
+    const r = await fetch(SCRIPT_URL + "?action=load");
+    const t = await r.text();
+
+    if (!t) {
+      entries = [];
       render();
-    })
-    .catch(err => console.error("Errore load:", err));
+      return;
+    }
+
+    // 1) Proviamo JSON in chiaro (vecchio formato)
+    try {
+      const parsed = JSON.parse(t);
+      if (Array.isArray(parsed)) {
+        entries = parsed;
+        render();
+        autoSave(); // salva subito in cifrato
+        return;
+      }
+    } catch (e) {}
+
+    // 2) Altrimenti è cifrato
+    try {
+      const jsonStr = await decryptData(MASTER_KEY, t);
+      const parsed = JSON.parse(jsonStr);
+      entries = parsed;
+      render();
+    } catch (e) {
+      alert("Errore: impossibile decifrare i dati.");
+      entries = [];
+      render();
+    }
+
+  } catch (err) {
+    console.error("Errore load:", err);
+    entries = [];
+    render();
+  }
 }
+
+/* ============================
+   SALVATAGGIO AUTOMATICO
+============================ */
+
+let saveTimeout = null;
+
+function autoSave() {
+  clearTimeout(saveTimeout);
+  saveTimeout = setTimeout(() => {
+    save();
+  }, 500); // salva dopo mezzo secondo
+}
+
+async function save() {
+  try {
+    const jsonStr = JSON.stringify(entries);
+    const cipherText = await encryptData(MASTER_KEY, jsonStr);
+    const data = encodeURIComponent(cipherText);
+
+    await fetch(SCRIPT_URL + "?action=save&data=" + data);
+
+  } catch (err) {
+    console.error("Errore save:", err);
+  }
+}
+
+/* ============================
+   ORDINAMENTO + RENDER
+============================ */
 
 function applySort() {
   const mode = document.getElementById("sortSelect").value;
@@ -30,6 +94,7 @@ function applySort() {
   else entries.reverse();
 
   render();
+  autoSave();
 }
 
 function render() {
@@ -54,6 +119,10 @@ function render() {
   });
 }
 
+/* ============================
+   GESTIONE VOCI
+============================ */
+
 function addEntry() {
   const title = document.getElementById("title").value.trim();
   const username = document.getElementById("username").value.trim();
@@ -75,6 +144,7 @@ function addEntry() {
 
   clearForm();
   render();
+  autoSave();
 }
 
 function startEdit(i) {
@@ -101,9 +171,9 @@ function clearForm() {
   document.getElementById("note").value = "";
 }
 
-/* ---------------------------
-   BANNER DI SICUREZZA
----------------------------- */
+/* ============================
+   BANNER ELIMINAZIONE
+============================ */
 
 function confirmDelete(i) {
   deleteIndex = i;
@@ -127,36 +197,108 @@ function confirmDelete(i) {
 }
 
 function cancelDelete() {
-  document.getElementById("confirmOverlay").remove();
+  const ov = document.getElementById("confirmOverlay");
+  if (ov) ov.remove();
   deleteIndex = null;
 }
 
 function doDelete() {
-  entries.splice(deleteIndex, 1);
+  if (deleteIndex !== null) {
+    entries.splice(deleteIndex, 1);
+  }
   deleteIndex = null;
-  document.getElementById("confirmOverlay").remove();
+  const ov = document.getElementById("confirmOverlay");
+  if (ov) ov.remove();
   render();
+  autoSave();
 }
 
-/* --------------------------- */
+/* ============================
+   CIFRATURA AES-GCM + PBKDF2
+============================ */
 
-function save() {
-  const data = encodeURIComponent(JSON.stringify(entries));
+async function encryptData(password, dataStr) {
+  const enc = new TextEncoder();
+  const salt = crypto.getRandomValues(new Uint8Array(16));
+  const iv = crypto.getRandomValues(new Uint8Array(12));
 
-  fetch(SCRIPT_URL + "?action=save&data=" + data)
-    .then(r => r.text())
-    .then(t => {
-      try {
-        const res = JSON.parse(t);
-        if (res.ok) alert("☁️ Salvato su Drive");
-      } catch (e) {
-        alert("Salvato");
-      }
-    })
-    .catch(err => {
-      console.error("Errore save:", err);
-      alert("Errore di rete");
-    });
+  const key = await deriveKey(password, salt);
+
+  const cipherBuffer = await crypto.subtle.encrypt(
+    { name: "AES-GCM", iv },
+    key,
+    enc.encode(dataStr)
+  );
+
+  const full = new Uint8Array(salt.byteLength + iv.byteLength + cipherBuffer.byteLength);
+  full.set(salt, 0);
+  full.set(iv, salt.byteLength);
+  full.set(new Uint8Array(cipherBuffer), salt.byteLength + iv.byteLength);
+
+  return bytesToBase64(full);
+}
+
+async function decryptData(password, b64) {
+  const full = base64ToBytes(b64);
+  const salt = full.slice(0, 16);
+  const iv = full.slice(16, 28);
+  const data = full.slice(28);
+
+  const key = await deriveKey(password, salt);
+
+  const plainBuffer = await crypto.subtle.decrypt(
+    { name: "AES-GCM", iv },
+    key,
+    data
+  );
+
+  const dec = new TextDecoder();
+  return dec.decode(plainBuffer);
+}
+
+async function deriveKey(password, salt) {
+  const enc = new TextEncoder();
+  const keyMaterial = await crypto.subtle.importKey(
+    "raw",
+    enc.encode(password),
+    { name: "PBKDF2" },
+    false,
+    ["deriveKey"]
+  );
+
+  return crypto.subtle.deriveKey(
+    {
+      name: "PBKDF2",
+      salt,
+      iterations: 100000,
+      hash: "SHA-256"
+    },
+    keyMaterial,
+    { name: "AES-GCM", length: 256 },
+    false,
+    ["encrypt", "decrypt"]
+  );
+}
+
+/* ============================
+   UTILITY
+============================ */
+
+function bytesToBase64(bytes) {
+  let binary = "";
+  for (let i = 0; i < bytes.length; i++) {
+    binary += String.fromCharCode(bytes[i]);
+  }
+  return btoa(binary);
+}
+
+function base64ToBytes(b64) {
+  const binary = atob(b64);
+  const bytes = new Uint8Array(binary.length);
+  for (let i = 0; i < binary.length; i++) {
+    bytes[i] = binary.charCodeAt(i);
+  }
+  return bytes;
 }
 
 function escapeHtml(str) {
@@ -168,5 +310,7 @@ function escapeHtml(str) {
     "'": '&#39;'
   }[c]));
 }
+
+/* ============================ */
 
 load();
