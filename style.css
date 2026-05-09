@@ -7,7 +7,6 @@ body {
   margin: 0 auto;
 }
 
-
 h1, h2 {
   text-align: center;
 }
@@ -89,29 +88,29 @@ button {
   100% { background-position: 0% 50%; }
 }
 
-/* Bottoni Modifica / Elimina */
-.redBtn {
-  background: linear-gradient(90deg, #ff4d4d, #ff0000, #ff4d4d);
-  animation: redGlow 4s infinite;
-  color: white;
-}
-
-@keyframes redGlow {
-  0% { box-shadow: 0 0 5px #ff4d4d; }
-  50% { box-shadow: 0 0 15px #ff0000; }
-  100% { box-shadow: 0 0 5px #ff4d4d; }
-}
-
+/* Bottoni Modifica / Elimina — VERSIONE DEFINITIVA */
 .orangeBtn {
-  background: linear-gradient(90deg, #ffb347, #ff8c00, #ffb347);
-  animation: orangeGlow 4s infinite;
-  color: white;
+  background: linear-gradient(90deg, #ffb347, #ff8c00, #ffb347) !important;
+  color: white !important;
+  animation: orangeGlow 4s infinite !important;
 }
 
 @keyframes orangeGlow {
   0% { box-shadow: 0 0 5px #ffb347; }
   50% { box-shadow: 0 0 15px #ff8c00; }
   100% { box-shadow: 0 0 5px #ffb347; }
+}
+
+.redBtn {
+  background: linear-gradient(90deg, #ff4d4d, #ff0000, #ff4d4d) !important;
+  color: white !important;
+  animation: redGlow 4s infinite !important;
+}
+
+@keyframes redGlow {
+  0% { box-shadow: 0 0 5px #ff4d4d; }
+  50% { box-shadow: 0 0 15px #ff0000; }
+  100% { box-shadow: 0 0 5px #ff4d4d; }
 }
 
 /* Eliminazione */
