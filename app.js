@@ -33,7 +33,6 @@ async function load() {
   }
 }
 
-
 /* ============================
    SALVATAGGIO AUTOMATICO
 ============================ */
@@ -190,7 +189,6 @@ function confirmDelete(i) {
 
   document.body.appendChild(overlay);
 }
-
 
 function cancelDelete() {
   const ov = document.getElementById("confirmOverlay");
