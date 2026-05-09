@@ -2,6 +2,7 @@ const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzMgmiNvyJyiacBYqJEp
 
 let entries = [];
 let editIndex = null;
+let deleteIndex = null;
 
 if ('serviceWorker' in navigator) {
   navigator.serviceWorker.register('sw.js');
@@ -24,15 +25,9 @@ function load() {
 function applySort() {
   const mode = document.getElementById("sortSelect").value;
 
-  if (mode === "az") {
-    entries.sort((a, b) => a.title.localeCompare(b.title));
-  }
-  else if (mode === "za") {
-    entries.sort((a, b) => b.title.localeCompare(a.title));
-  }
-  else {
-    entries.reverse();
-  }
+  if (mode === "az") entries.sort((a, b) => a.title.localeCompare(b.title));
+  else if (mode === "za") entries.sort((a, b) => b.title.localeCompare(a.title));
+  else entries.reverse();
 
   render();
 }
@@ -53,7 +48,7 @@ function render() {
       📝 ${escapeHtml(e.note)}<br><br>
 
       <button class="orangeBtn" onclick="startEdit(${i})">✏️ Modifica</button>
-      <button class="redBtn" onclick="removeEntry(${i})">🗑️ Elimina</button>
+      <button class="redBtn" onclick="confirmDelete(${i})">🗑️ Elimina</button>
     `;
     list.appendChild(div);
   });
@@ -106,10 +101,44 @@ function clearForm() {
   document.getElementById("note").value = "";
 }
 
-function removeEntry(i) {
-  entries.splice(i, 1);
+/* ---------------------------
+   BANNER DI SICUREZZA
+---------------------------- */
+
+function confirmDelete(i) {
+  deleteIndex = i;
+
+  const overlay = document.createElement("div");
+  overlay.className = "confirmOverlay";
+  overlay.id = "confirmOverlay";
+
+  overlay.innerHTML = `
+    <div class="confirmBox">
+      <h3>Sei sicuro di voler eliminare questa voce?</h3>
+
+      <div class="confirmButtons">
+        <button class="blueBtn" onclick="cancelDelete()">❌ Annulla</button>
+        <button class="redBtn" onclick="doDelete()">🗑️ Elimina</button>
+      </div>
+    </div>
+  `;
+
+  document.body.appendChild(overlay);
+}
+
+function cancelDelete() {
+  document.getElementById("confirmOverlay").remove();
+  deleteIndex = null;
+}
+
+function doDelete() {
+  entries.splice(deleteIndex, 1);
+  deleteIndex = null;
+  document.getElementById("confirmOverlay").remove();
   render();
 }
+
+/* --------------------------- */
 
 function save() {
   const data = encodeURIComponent(JSON.stringify(entries));
