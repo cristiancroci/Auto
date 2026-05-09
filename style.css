@@ -132,7 +132,7 @@ button {
   transition: color 0.3s;
 }
 
-/* Lampeggi */
+/* Lampeggi OPZIONE A */
 .statusIndicator.ok {
   animation: greenBlink 2s infinite;
 }
