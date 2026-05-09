@@ -98,25 +98,17 @@ function render() {
   entries.forEach((e, i) => {
     const div = document.createElement("div");
     div.className = "entry";
-
     div.innerHTML = `
       <b>${escapeHtml(e.title)}</b><br>
-
       👤 ${escapeHtml(e.username)}<br>
-
-      🔑 <span id="pw${i}">••••••••</span>
-      <span class="eyeSmall" onclick="toggleSavedVisibility('pw${i}', '${escapeHtml(e.password)}', this)">👁️</span><br>
-
-      📌 <span id="pin${i}">••••</span>
-      <span class="eyeSmall" onclick="toggleSavedVisibility('pin${i}', '${escapeHtml(e.pin)}', this)">👁️</span><br>
-
+      🔑 ${escapeHtml(e.password)}<br>
+      📌 ${escapeHtml(e.pin)}<br>
       🌐 ${escapeHtml(e.url)}<br>
       📝 ${escapeHtml(e.note)}<br><br>
 
       <button class="orangeBtn" onclick="startEdit(${i})">✏️ Modifica</button>
       <button class="redBtn" onclick="confirmDelete(${i})">🗑️ Elimina</button>
     `;
-
     list.appendChild(div);
   });
 }
@@ -141,7 +133,7 @@ function addEntry() {
     entries[editIndex] = { title, username, password, pin, url, note };
     editIndex = null;
     document.querySelector(".addBtn").innerHTML = "➕ Nuova voce";
-    document.querySelector(".addBtn").className = "addBtn blueBtn";
+    document.querySelector(".addBtn").className = "addBtn crazyBtn";
   }
 
   clearForm();
@@ -213,35 +205,6 @@ function doDelete() {
   if (ov) ov.remove();
   render();
   autoSave();
-}
-
-/* ============================
-   VISUALIZZAZIONE PASSWORD/PIN
-============================ */
-
-function toggleInputVisibility(id, el) {
-  const input = document.getElementById(id);
-  if (input.type === "password") {
-    input.type = "text";
-    el.textContent = "🙈";
-  } else {
-    input.type = "password";
-    el.textContent = "👁️";
-  }
-}
-
-function toggleSavedVisibility(spanId, realValue, el) {
-  const span = document.getElementById(spanId);
-
-  if (span.dataset.visible === "true") {
-    span.textContent = spanId.startsWith("pw") ? "••••••••" : "••••";
-    span.dataset.visible = "false";
-    el.textContent = "👁️";
-  } else {
-    span.textContent = realValue || "";
-    span.dataset.visible = "true";
-    el.textContent = "🙈";
-  }
 }
 
 /* ============================
