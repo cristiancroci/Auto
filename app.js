@@ -1,6 +1,7 @@
-const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzMgmiNvyJyiacBYqJEp8Nhg5GU7AqEtfN4ilq7aF5EmuKBdMdQsQ6YWy2UmCFqFYzMqA/exec"; // es: https://script.google.com/macros/s/XXX/exec
+const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzMgmiNvyJyiacBYqJEp8Nhg5GU7AqEtfN4ilq7aF5EmuKBdMdQsQ6YWy2UmCFqFYzMqA/exec"; 
 
 let entries = [];
+let editIndex = null;
 
 if ('serviceWorker' in navigator) {
   navigator.serviceWorker.register('sw.js');
@@ -17,9 +18,7 @@ function load() {
       }
       render();
     })
-    .catch(err => {
-      console.error("Errore load:", err);
-    });
+    .catch(err => console.error("Errore load:", err));
 }
 
 function render() {
@@ -31,12 +30,14 @@ function render() {
     div.className = "entry";
     div.innerHTML = `
       <b>${escapeHtml(e.title)}</b><br>
-      User: ${escapeHtml(e.username)}<br>
-      Pass: ${escapeHtml(e.password)}<br>
-      PIN: ${escapeHtml(e.pin)}<br>
-      URL: ${escapeHtml(e.url)}<br>
-      Note: ${escapeHtml(e.note)}<br>
-      <button onclick="removeEntry(${i})">Elimina</button>
+      👤 ${escapeHtml(e.username)}<br>
+      🔑 ${escapeHtml(e.password)}<br>
+      📌 ${escapeHtml(e.pin)}<br>
+      🌐 ${escapeHtml(e.url)}<br>
+      📝 ${escapeHtml(e.note)}<br><br>
+
+      <button onclick="startEdit(${i})">✏️ Modifica</button>
+      <button onclick="removeEntry(${i})">🗑️ Elimina</button>
     `;
     list.appendChild(div);
   });
@@ -52,16 +53,39 @@ function addEntry() {
 
   if (!title && !username && !password) return;
 
-  entries.push({ title, username, password, pin, url, note });
+  if (editIndex === null) {
+    entries.push({ title, username, password, pin, url, note });
+  } else {
+    entries[editIndex] = { title, username, password, pin, url, note };
+    editIndex = null;
+    document.querySelector(".addBtn").innerHTML = "➕ Aggiungi";
+  }
 
+  clearForm();
+  render();
+}
+
+function startEdit(i) {
+  const e = entries[i];
+  editIndex = i;
+
+  document.getElementById("title").value = e.title;
+  document.getElementById("username").value = e.username;
+  document.getElementById("password").value = e.password;
+  document.getElementById("pin").value = e.pin;
+  document.getElementById("url").value = e.url;
+  document.getElementById("note").value = e.note;
+
+  document.querySelector(".addBtn").innerHTML = "💾 Salva Modifica";
+}
+
+function clearForm() {
   document.getElementById("title").value = "";
   document.getElementById("username").value = "";
   document.getElementById("password").value = "";
   document.getElementById("pin").value = "";
   document.getElementById("url").value = "";
   document.getElementById("note").value = "";
-
-  render();
 }
 
 function removeEntry(i) {
@@ -77,13 +101,9 @@ function save() {
     .then(t => {
       try {
         const res = JSON.parse(t);
-        if (res.ok) {
-          alert("Salvato su Drive");
-        } else {
-          alert("Errore salvataggio");
-        }
+        if (res.ok) alert("☁️ Salvato su Drive");
       } catch (e) {
-        alert("Salvato (risposta non standard)");
+        alert("Salvato");
       }
     })
     .catch(err => {
