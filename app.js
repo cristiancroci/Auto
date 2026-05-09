@@ -190,6 +190,7 @@ function confirmDelete(i) {
   document.body.appendChild(overlay);
 }
 
+
 function cancelDelete() {
   const ov = document.getElementById("confirmOverlay");
   if (ov) ov.remove();
