@@ -48,6 +48,8 @@ function autoSave() {
 
 async function save() {
   const status = document.getElementById("saveStatus");
+
+  // Stato: salvataggio in corso
   status.className = "statusIndicator saving";
   status.textContent = "🟡 Salvataggio...";
   isSaving = true;
@@ -56,12 +58,15 @@ async function save() {
     const data = encodeURIComponent(JSON.stringify(entries));
     await fetch(SCRIPT_URL + "?action=save&data=" + data);
 
+    // Stato: salvato
     status.className = "statusIndicator ok";
     status.textContent = "🟢 Salvato";
     isSaving = false;
 
   } catch (err) {
     console.error("Errore save:", err);
+
+    // Stato: errore
     status.className = "statusIndicator err";
     status.textContent = "🔴 Errore";
     isSaving = false;
