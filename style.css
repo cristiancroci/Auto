@@ -3,8 +3,8 @@
 =========================== */
 
 body {
-  background: #0b1020;
-  color: white;
+  background: #f2f7fb;   /* ❄️ BIANCO GHIACCIO */
+  color: #000;
   font-family: Arial, sans-serif;
   padding: 20px;
   display: flex;
@@ -13,7 +13,7 @@ body {
 
 .container {
   width: 100%;
-  max-width: 380px;   /* LARGHEZZA PERFETTA */
+  max-width: 380px;
   margin: 0 auto;
 }
 
@@ -53,6 +53,8 @@ input, textarea {
   border-radius: 6px;
   border: none;
   box-sizing: border-box;
+  background: #ffffff;   /* finestre chiare */
+  color: #000;
 }
 
 /* ===========================
@@ -69,16 +71,17 @@ input, textarea {
 }
 
 /* ===========================
-   ENTRY CARD
+   ENTRY CARD (SCURA)
 =========================== */
 
 .entry {
-  background: #1a1f36;
+  background: #1a1f36;   /* finestre scure */
   padding: 14px;
   border-radius: 10px;
   width: 100%;
   box-sizing: border-box;
-  margin: 0 auto;   /* CENTRATA PERFETTAMENTE */
+  margin: 0 auto;
+  color: white;
 }
 
 /* TITOLO IN BOLLA */
@@ -236,6 +239,7 @@ button {
   border-radius: 8px;
   font-size: 18px;
   background: #1a1f36;
+  color: white;
 }
 
 .statusIndicator.ok { animation: greenBlink 2s infinite; }
