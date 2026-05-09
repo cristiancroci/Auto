@@ -25,14 +25,26 @@
   <div class="form">
 
     <input id="title" placeholder="Titolo / Servizio">
-    <input id="username" placeholder="Username">
-    <input id="password" placeholder="Password">
-    <input id="pin" placeholder="PIN (opzionale)">
+
+    <div class="inputWrap">
+      <input id="username" placeholder="Username">
+      <span class="eye" onclick="toggleInputVisibility('username', this)">👁️</span>
+    </div>
+
+    <div class="inputWrap">
+      <input id="password" type="password" placeholder="Password">
+      <span class="eye" onclick="toggleInputVisibility('password', this)">👁️</span>
+    </div>
+
+    <div class="inputWrap">
+      <input id="pin" type="password" placeholder="PIN (opzionale)">
+      <span class="eye" onclick="toggleInputVisibility('pin', this)">👁️</span>
+    </div>
+
     <input id="url" placeholder="URL (opzionale)">
     <textarea id="note" placeholder="Note"></textarea>
 
     <button class="addBtn blueBtn" onclick="addEntry()">➕ Nuova voce</button>
-
 
   </div>
 
