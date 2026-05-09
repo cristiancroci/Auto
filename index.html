@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Vault</title>
+  <title>Password Vault</title>
 
   <link rel="stylesheet" href="style.css">
   <link rel="manifest" href="manifest.json">
@@ -11,15 +11,13 @@
 </head>
 <body>
 
-  <h1>Vault 🔐</h1>
+  <h1>Password Vault 🔐</h1>
 
-  <!-- Tendina ordinamento -->
   <select id="sortSelect" onchange="applySort()" class="sortMenu">
     <option value="recent">📅 Recenti</option>
     <option value="az">🔤 Nome A → Z</option>
     <option value="za">🔤 Nome Z → A</option>
   </select>
-
 
   <div class="form">
 
@@ -30,16 +28,12 @@
     <input id="url" placeholder="URL (opzionale)">
     <textarea id="note" placeholder="Note"></textarea>
 
-    <!-- Bottone Aggiungi / Salva Modifica -->
     <button class="addBtn blueBtn" onclick="addEntry()">➕ Nuova voce</button>
 
   </div>
 
   <h2>Voci salvate</h2>
   <div id="list"></div>
-
-  <!-- Bottone Salva su Drive -->
-  <button class="save purpleBtn" onclick="save()">☁️💾 Salva su Drive</button>
 
   <script src="app.js"></script>
 </body>
