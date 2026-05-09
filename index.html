@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Vault</title>
+  <title>Password Vault</title>
 
   <link rel="stylesheet" href="style.css">
   <link rel="manifest" href="manifest.json">
@@ -14,7 +14,7 @@
   <!-- Semaforo -->
   <div id="saveStatus" class="statusIndicator ok">🟢 Salvato</div>
 
-  <h1>Vault 🔐</h1>
+  <h1>Password Vault 🔐</h1>
 
   <select id="sortSelect" onchange="applySort()" class="sortMenu">
     <option value="recent">📅 Recenti</option>
@@ -31,7 +31,7 @@
     <input id="url" placeholder="URL (opzionale)">
     <textarea id="note" placeholder="Note"></textarea>
 
-    <button class="addBtn crazyBtn" onclick="addEntry()">➕ Nuova voce</button>
+    <button id="addBtn" class="crazyBtn" onclick="addEntry()">➕ Nuova voce</button>
 
   </div>
 
