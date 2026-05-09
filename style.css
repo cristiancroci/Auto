@@ -11,7 +11,6 @@ h1, h2 {
   text-align: center;
 }
 
-/* Tendina ordinamento */
 .sortMenu {
   width: 100%;
   padding: 12px;
@@ -40,7 +39,6 @@ h1, h2 {
   box-sizing: border-box;
 }
 
-/* Schede scure */
 .entry {
   background: #1a1f36;
   padding: 12px;
@@ -56,7 +54,6 @@ h1, h2 {
   100% { box-shadow: 0 0 5px #1a1f36; }
 }
 
-/* Pulsanti base */
 button {
   width: 100%;
   padding: 12px;
@@ -68,11 +65,9 @@ button {
   cursor: pointer;
 }
 
-/* Cangianti */
 .redBtn {
   background: linear-gradient(90deg, #ff4d4d, #ff0000, #ff4d4d);
   animation: redGlow 4s infinite;
-  color: white !important;
 }
 @keyframes redGlow {
   0% { box-shadow: 0 0 5px #ff4d4d; }
@@ -83,7 +78,6 @@ button {
 .orangeBtn {
   background: linear-gradient(90deg, #ffb347, #ff8c00, #ffb347);
   animation: orangeGlow 4s infinite;
-  color: white !important;
 }
 @keyframes orangeGlow {
   0% { box-shadow: 0 0 5px #ffb347; }
@@ -94,7 +88,6 @@ button {
 .blueBtn {
   background: linear-gradient(90deg, #4da6ff, #0066ff, #4da6ff);
   animation: blueGlow 4s infinite;
-  color: white !important;
 }
 @keyframes blueGlow {
   0% { box-shadow: 0 0 5px #4da6ff; }
@@ -105,7 +98,6 @@ button {
 .greenBtn {
   background: linear-gradient(90deg, #66ff99, #00cc66, #66ff99);
   animation: greenGlow 4s infinite;
-  color: white !important;
 }
 @keyframes greenGlow {
   0% { box-shadow: 0 0 5px #66ff99; }
@@ -113,18 +105,7 @@ button {
   100% { box-shadow: 0 0 5px #66ff99; }
 }
 
-.purpleBtn {
-  background: linear-gradient(90deg, #b366ff, #7f00ff, #b366ff);
-  animation: purpleGlow 4s infinite;
-  color: white !important;
-}
-@keyframes purpleGlow {
-  0% { box-shadow: 0 0 5px #b366ff; }
-  50% { box-shadow: 0 0 15px #7f00ff; }
-  100% { box-shadow: 0 0 5px #b366ff; }
-}
-
-/* Banner di conferma eliminazione */
+/* Banner conferma eliminazione */
 .confirmOverlay {
   position: fixed;
   top: 0;
@@ -148,17 +129,39 @@ button {
   animation: glowCard 4s infinite;
 }
 
-.confirmBox h3 {
-  margin-bottom: 20px;
-  font-size: 18px;
-}
-
 .confirmButtons {
   display: flex;
   gap: 10px;
   margin-top: 15px;
 }
 
-.confirmButtons button {
-  flex: 1;
+/* 🔔 Notifiche salvataggio */
+.toast {
+  position: fixed;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #1a1f36;
+  padding: 12px 20px;
+  border-radius: 8px;
+  color: white;
+  font-size: 15px;
+  animation: fadeInOut 3s forwards;
+  z-index: 99999;
+  box-shadow: 0 0 12px rgba(0,0,0,0.4);
+}
+
+.toast.ok {
+  border-left: 5px solid #00cc66;
+}
+
+.toast.err {
+  border-left: 5px solid #ff3333;
+}
+
+@keyframes fadeInOut {
+  0% { opacity: 0; transform: translate(-50%, 20px); }
+  10% { opacity: 1; transform: translate(-50%, 0); }
+  90% { opacity: 1; transform: translate(-50%, 0); }
+  100% { opacity: 0; transform: translate(-50%, 20px); }
 }
