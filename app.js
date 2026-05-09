@@ -1,4 +1,4 @@
-const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzMgmiNvyJyiacBYqJEp8Nhg5GU7AqEtfN4ilq7aF5EmuKBdMdQsQ6YWy2UmCFqFYzMqA/exec"; 
+const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzMgmiNvyJyiacBYqJEp8Nhg5GU7AqEtfN4ilq7aF5EmuKBdMdQsQ6YWy2UmCFqFYzMqA/exec";
 
 let entries = [];
 let editIndex = null;
@@ -21,6 +21,22 @@ function load() {
     .catch(err => console.error("Errore load:", err));
 }
 
+function applySort() {
+  const mode = document.getElementById("sortSelect").value;
+
+  if (mode === "az") {
+    entries.sort((a, b) => a.title.localeCompare(b.title));
+  }
+  else if (mode === "za") {
+    entries.sort((a, b) => b.title.localeCompare(a.title));
+  }
+  else {
+    entries.reverse(); // recenti
+  }
+
+  render();
+}
+
 function render() {
   const list = document.getElementById("list");
   list.innerHTML = "";
@@ -36,8 +52,8 @@ function render() {
       🌐 ${escapeHtml(e.url)}<br>
       📝 ${escapeHtml(e.note)}<br><br>
 
-      <button onclick="startEdit(${i})">✏️ Modifica</button>
-      <button onclick="removeEntry(${i})">🗑️ Elimina</button>
+      <button class="orangeBtn" onclick="startEdit(${i})">✏️ Modifica</button>
+      <button class="redBtn" onclick="removeEntry(${i})">🗑️ Elimina</button>
     `;
     list.appendChild(div);
   });
@@ -58,7 +74,8 @@ function addEntry() {
   } else {
     entries[editIndex] = { title, username, password, pin, url, note };
     editIndex = null;
-    document.querySelector(".addBtn").innerHTML = "➕ Aggiungi";
+    document.querySelector(".addBtn").innerHTML = "➕ Nuova voce";
+    document.querySelector(".addBtn").className = "addBtn blueBtn";
   }
 
   clearForm();
@@ -77,6 +94,7 @@ function startEdit(i) {
   document.getElementById("note").value = e.note;
 
   document.querySelector(".addBtn").innerHTML = "💾 Salva Modifica";
+  document.querySelector(".addBtn").className = "addBtn greenBtn";
 }
 
 function clearForm() {
