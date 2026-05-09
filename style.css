@@ -1,20 +1,24 @@
 body {
   background: #0b1020;
   color: white;
-  font-family: Arial;
+  font-family: Arial, sans-serif;
   padding: 20px;
+  max-width: 600px;
+  margin: 0 auto;
 }
 
 h1, h2 {
   text-align: center;
 }
 
-.form input, .form textarea {
+.form input,
+.form textarea {
   width: 100%;
   padding: 10px;
   margin: 5px 0;
   border-radius: 6px;
   border: none;
+  box-sizing: border-box;
 }
 
 button {
@@ -33,4 +37,10 @@ button {
   padding: 10px;
   border-radius: 6px;
   margin-bottom: 10px;
+  font-size: 14px;
+}
+
+.entry button {
+  margin-top: 8px;
+  background: #ef4444;
 }
