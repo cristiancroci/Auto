@@ -1,24 +1,32 @@
 // 🔗 URL della tua Web App Apps Script
-const WEBAPP_URL = "https://script.google.com/macros/s/AKfycbz6rQ7tNegXiXyHTB4LzWXJO_y136g4NTIdf2-u4ctjO2svMLzgqBaUfzcp_mHENn8bQg/exec"; 
+const WEBAPP_URL = "LA_TUA_WEBAPP_URL"; 
 // esempio: "https://script.google.com/macros/s/AKfycbx123456789/exec"
 
 
-// 👁️ Mostra/Nascondi nei campi del form
+/* -------------------------------------------------------
+   👁️ MOSTRA / NASCONDI (form)
+------------------------------------------------------- */
 function toggleVis(id) {
   const campo = document.getElementById(id);
   campo.type = campo.type === "password" ? "text" : "password";
 }
 
 
-// 👁️ Mostra/Nascondi nello storico
+/* -------------------------------------------------------
+   👁️ MOSTRA / NASCONDI (storico)
+------------------------------------------------------- */
 function toggleStorico(id) {
   const el = document.getElementById(id);
   el.classList.toggle("visibile");
 }
 
 
-// 💾 SALVA CREDENZIALE (localStorage + Drive)
+/* -------------------------------------------------------
+   💾 SALVA (nuovo o modifica)
+------------------------------------------------------- */
 async function salva() {
+  let lista = JSON.parse(localStorage.getItem("credenziali") || "[]");
+
   const cred = {
     username: document.getElementById("username").value,
     password: document.getElementById("password").value,
@@ -28,20 +36,29 @@ async function salva() {
     data: new Date().toLocaleString()
   };
 
-  // 1) salva in locale
-  let lista = JSON.parse(localStorage.getItem("credenziali") || "[]");
-  lista.push(cred);
+  // 🔧 Se stiamo modificando una credenziale
+  if (window.modIndex !== undefined) {
+    lista[window.modIndex] = cred;
+    window.modIndex = undefined;
+    document.getElementById("status").textContent = "Modificato!";
+  } else {
+    lista.push(cred);
+    document.getElementById("status").textContent = "Salvato!";
+  }
+
+  // Salva in locale
   localStorage.setItem("credenziali", JSON.stringify(lista));
 
-  // 2) salva su Drive
+  // Salva su Drive
   await salvaSuDrive(lista);
 
   aggiornaUI();
-  document.getElementById("status").textContent = "Salvato!";
 }
 
 
-// 📤 POST → Drive
+/* -------------------------------------------------------
+   📤 SALVA SU DRIVE (POST)
+------------------------------------------------------- */
 async function salvaSuDrive(lista) {
   try {
     await fetch(WEBAPP_URL, {
@@ -55,7 +72,9 @@ async function salvaSuDrive(lista) {
 }
 
 
-// 📥 LOAD → Drive
+/* -------------------------------------------------------
+   📥 CARICA DA DRIVE (GET)
+------------------------------------------------------- */
 async function caricaDaDrive() {
   try {
     const res = await fetch(WEBAPP_URL + "?mode=load");
@@ -70,7 +89,45 @@ async function caricaDaDrive() {
 }
 
 
-// 🔄 Aggiorna interfaccia
+/* -------------------------------------------------------
+   ✏️ MODIFICA CREDENZIALE
+------------------------------------------------------- */
+function modifica(index) {
+  const lista = JSON.parse(localStorage.getItem("credenziali") || "[]");
+  const c = lista[index];
+
+  document.getElementById("username").value = c.username;
+  document.getElementById("password").value = c.password;
+  document.getElementById("pin").value = c.pin;
+  document.getElementById("note").value = c.note;
+  document.getElementById("url").value = c.url;
+
+  window.modIndex = index;
+
+  document.getElementById("status").textContent = "Modifica in corso…";
+}
+
+
+/* -------------------------------------------------------
+   🗑️ ELIMINA CREDENZIALE
+------------------------------------------------------- */
+async function elimina(index) {
+  let lista = JSON.parse(localStorage.getItem("credenziali") || "[]");
+
+  if (!confirm("Vuoi eliminare questa credenziale?")) return;
+
+  lista.splice(index, 1);
+
+  localStorage.setItem("credenziali", JSON.stringify(lista));
+  await salvaSuDrive(lista);
+
+  aggiornaUI();
+}
+
+
+/* -------------------------------------------------------
+   🔄 AGGIORNA INTERFACCIA
+------------------------------------------------------- */
 function aggiornaUI() {
   const lista = JSON.parse(localStorage.getItem("credenziali") || "[]");
   const ul = document.getElementById("lista");
@@ -104,6 +161,11 @@ function aggiornaUI() {
       </div>
 
       <div class="riga-note">${c.note}</div>
+
+      <div class="azioni">
+        <button onclick="modifica(${i})">✏️ Modifica</button>
+        <button onclick="elimina(${i})">🗑️ Elimina</button>
+      </div>
     `;
 
     ul.appendChild(li);
@@ -111,7 +173,9 @@ function aggiornaUI() {
 }
 
 
-// 🚀 Avvio app
+/* -------------------------------------------------------
+   🚀 AVVIO APP
+------------------------------------------------------- */
 (async () => {
   await caricaDaDrive(); // carica da Drive all’avvio
   aggiornaUI();          // aggiorna la UI
